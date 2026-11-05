@@ -1,28 +1,50 @@
-# Estudiemos · Frontend
+# Estudiemos - Frontend
 
-Base del frontend del Sprint 0: React, TypeScript, Vite, Tailwind CSS, rutas, estructura común, pantalla 404 y portada basada en la guía visual compartida. Incluye `/base-tecnica` para mostrar el dato que llega desde la API.
+Este es el frontend que estoy preparando para el Sprint 0. Está hecho con React, TypeScript, Vite y Tailwind CSS. Por ahora tiene la página de inicio, la navegación, las rutas iniciales y la pantalla para revisar la conexión con la API.
 
-## Requisitos
+## Lo que necesito
 
-- Node.js 20 o superior
+- Node.js 20 o una versión más reciente
 - npm
 
-## Ejecutar en desarrollo
+## Ejecutarlo en mi computador
 
-1. Copia `.env.example` a `.env`.
-2. Cuando el equipo publique el endpoint público de la API que devuelve el dato de Firestore, asigna su URL a `VITE_API_URL`.
-3. Instala dependencias y ejecuta `npm run dev`.
+1. Copia `.env.example` y ponle el nombre `.env`.
+2. Cuando esté lista la API, agrega su URL en la variable `VITE_API_URL` del archivo `.env`. Esa URL debe apuntar al endpoint que devuelve el dato guardado en Firestore.
+3. Abre una terminal en esta carpeta y ejecuta:
 
-La pantalla `/base-tecnica` espera un endpoint `GET` público configurado en `VITE_API_URL`. Contrato inicial sugerido: respuesta JSON `{ "message": "Mensaje de bienvenida" }` con estado HTTP 200. La interfaz también muestra respuestas JSON con otro formato para facilitar la integración. Errores deben responder con estado HTTP no exitoso. El backend debe permitir por CORS el origen de Vercel.
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-La página muestra estados de carga, error con botón **Reintentar** y éxito. Sin `VITE_API_URL`, explica que falta configurar la conexión. No incluyas secretos en `VITE_*`: el valor queda visible en el navegador.
+La pantalla `/base-tecnica` consulta el endpoint con una petición `GET`. Para empezar, propongo que la API responda con estado HTTP 200 y un JSON como este:
 
-## Compilar y servir con Docker
+```json
+{ "message": "Mensaje de bienvenida" }
+```
 
-Desde esta carpeta, ejecuta `docker build -t estudiemos-frontend .` y luego `docker run -p 8080:80 estudiemos-frontend`.
+Si el backend usa otro formato, se puede ajustar la lectura de la respuesta en `src/services/baseApi.ts`. Cuando haya un error, la API debe responder con un estado HTTP distinto de 2xx. También debe permitir por CORS el origen donde se publique el frontend en Vercel.
 
-`VITE_API_URL` se incorpora durante la compilación del frontend. Define su valor al ejecutar `docker build` (por ejemplo con `--build-arg VITE_API_URL=https://...`) cuando la API esté disponible.
+En `/base-tecnica` se ven los estados de carga, error y éxito. Si todavía no se ha configurado `VITE_API_URL`, la pantalla avisa que falta la conexión. No pongas contraseñas ni claves secretas en variables `VITE_*`, porque sus valores quedan visibles en el navegador.
 
-## Rutas base
+## Ejecutarlo con Docker
 
-`/`, `/base-tecnica`, `/beneficios`, `/como-funciona`, `/ingresar`, `/registro`, `/registro/usuario`, `/panel`, `/perfil`, `/salas`, `/salas/nueva`, `/salas/unirse`, `/salas/:id`, `/ayuda` y `/accesibilidad`. Las pantallas de historias futuras son estructuras de navegación para sus sprints correspondientes.
+Desde esta carpeta, construye la imagen y levántala así:
+
+```bash
+docker build -t estudiemos-frontend .
+docker run -p 8080:80 estudiemos-frontend
+```
+
+La URL de `VITE_API_URL` se incluye al compilar. Cuando la API esté disponible, pásala durante la construcción de la imagen:
+
+```bash
+docker build --build-arg VITE_API_URL=https://tu-api.onrender.com/api/estado -t estudiemos-frontend .
+```
+
+## Rutas que dejé creadas
+
+`/`, `/base-tecnica`, `/beneficios`, `/como-funciona`, `/ingresar`, `/registro`, `/registro/usuario`, `/panel`, `/perfil`, `/salas`, `/salas/nueva`, `/salas/unirse`, `/salas/:id`, `/ayuda` y `/accesibilidad`.
+
+Las rutas de las historias que vienen después están creadas como base de navegación. Las completaré en los sprints que correspondan.
