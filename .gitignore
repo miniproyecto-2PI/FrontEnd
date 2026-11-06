@@ -1,0 +1,22 @@
+# Environment variables: keep the example template, ignore real local values.
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated frontend output
+**/node_modules/
+**/dist/
+**/coverage/
+
+# Local secrets and private keys
+*.pem
+*.key
+*serviceAccount*.json
+credentials*.json
+
+# Local editor and operating system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.tsbuildinfo
