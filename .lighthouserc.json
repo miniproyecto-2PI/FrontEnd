@@ -2,6 +2,7 @@
   "ci": {
     "collect": {
       "staticDistDir": "./dist",
+      "isSinglePageApplication": true,
       "url": ["/", "/base-tecnica"],
       "numberOfRuns": 3
     },
