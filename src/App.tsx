@@ -40,9 +40,12 @@ function ApiCard() {
   }
   useEffect(() => { void load() }, [])
   return <section className="api-card" aria-labelledby="api-title"><div><span className="eyebrow">Estado del sistema</span><h2 id="api-title">Dato leído desde Firestore</h2>
-    {state.kind === 'loading' && <p role="status" className="muted"><span className="spinner" aria-hidden="true" /> Cargando información…</p>}
-    {state.kind === 'error' && <div className="inline-error" role="alert"><p>{state.message}</p><button className="button button-outline focus-visible:ring-2 focus-visible:ring-blue-700" type="button" onClick={() => void load()}>Reintentar</button></div>}
-    {state.kind === 'success' && <p className="api-success" role="status">{getBaseMessage(state.data)}</p>}
+    {/* Altura reservada: evita el layout shift cuando el JSON reemplaza al estado de carga. */}
+    <div className="api-slot">
+      {state.kind === 'loading' && <p role="status" className="muted"><span className="spinner" aria-hidden="true" /> Cargando información…</p>}
+      {state.kind === 'error' && <div className="inline-error" role="alert"><p>{state.message}</p><button className="button button-outline focus-visible:ring-2 focus-visible:ring-blue-700" type="button" onClick={() => void load()}>Reintentar</button></div>}
+      {state.kind === 'success' && <p className="api-success" role="status">{getBaseMessage(state.data)}</p>}
+    </div>
   </div></section>
 }
 
