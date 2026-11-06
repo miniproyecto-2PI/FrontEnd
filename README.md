@@ -10,7 +10,7 @@ Este es el frontend que estoy preparando para el Sprint 0. Está hecho con React
 ## Ejecutarlo en mi computador
 
 1. Copia `.env.example` y ponle el nombre `.env`.
-2. Cuando esté lista la API, agrega su URL en la variable `VITE_API_URL` del archivo `.env`. Esa URL debe apuntar al endpoint que devuelve el dato guardado en Firestore.
+2. La plantilla ya apunta al endpoint del backend en Render. Si necesitas cambiarlo, edita `VITE_API_URL` en `.env`. Debe ser la URL completa del endpoint que devuelve el dato guardado en Firestore.
 3. Abre una terminal en esta carpeta y ejecuta:
 
    ```bash
@@ -47,18 +47,18 @@ docker build --build-arg VITE_API_URL=https://tu-api.onrender.com/api/estado -t 
 
 Importa el repositorio del frontend en Vercel. El proyecto usa Vite, así que la compilación es `npm run build` y la carpeta generada es `dist`.
 
-En la configuración del proyecto, agrega `VITE_API_URL` con la URL pública de Render seguida de `/api/archetype/data`. Define esa variable para Preview y Production. La URL del backend se debe confirmar con el equipo antes de publicarlo.
+En la configuración del proyecto, define `VITE_API_URL` como `https://api-backend-uqpy.onrender.com/api/archetype/data` para Preview y Production.
 
 Vercel puede generar una vista previa para la rama de esta historia y publicar producción desde `main` cuando se integre el pull request. El archivo `vercel.json` permite que las rutas de React Router, como `/base-tecnica`, sigan abriendo al recargar la página.
 
-El workflow `.github/workflows/deploy-vercel.yml` publica a producción cada vez que se actualiza `main`. El workflow `.github/workflows/deploy-vercel-develop.yml` crea un Preview al actualizar `develop` y ejecuta Lighthouse sobre la URL que Vercel devuelve. Ambos workflows usan estos secretos en GitHub, en **Settings → Secrets and variables → Actions**:
+El workflow `.github/workflows/deploy-vercel.yml` publica a producción cada vez que se actualiza `main`. El workflow `.github/workflows/deploy-vercel-preview.yml` publica una vista previa y ejecuta Lighthouse cuando se actualizan ramas `feature/**` e `integration/**`. Ambos workflows usan estos secretos en GitHub, en **Settings → Secrets and variables → Actions**:
 
 - `VERCEL_TOKEN`: un Access Token creado en la cuenta de Vercel.
 - `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID`: los identificadores del proyecto enlazado en Vercel. Se obtienen al enlazar el proyecto con `vercel link` y revisar `.vercel/project.json`.
 
 También configura `VITE_API_URL` en las variables de entorno del proyecto Vercel para Production. El archivo PEM de una clave pública no reemplaza `VERCEL_TOKEN`; no lo subas como secreto de despliegue.
 
-Configura también `VITE_API_URL` en el entorno Preview de Vercel, incluyendo la rama `develop`, para que la vista de pruebas consulte el backend correcto. Lighthouse revisa Accesibilidad en la portada y `/base-tecnica`, exige un puntaje mínimo de 90 y guarda los reportes de cada ejecución por 14 días.
+Configura `VITE_API_URL` en los entornos Preview y Production de Vercel para que las vistas de prueba y la aplicación publicada consulten el backend correcto. Lighthouse revisa Accesibilidad en la portada y `/base-tecnica`, exige un puntaje mínimo de 90 y guarda los reportes de cada ejecución por 14 días.
 
 ## Rutas que dejé creadas
 

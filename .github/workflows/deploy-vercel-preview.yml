@@ -1,22 +1,23 @@
-name: Deploy develop preview and check Lighthouse
+name: Deploy Vercel preview and check Lighthouse
 
 on:
   push:
     branches:
-      - develop
+      - 'feature/**'
+      - 'integration/**'
 
 permissions:
   contents: read
 
 concurrency:
-  group: vercel-develop-preview
+  group: vercel-preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   deploy-and-audit:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out develop
+      - name: Check out branch
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -31,25 +32,26 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Pull develop preview settings
-        run: vercel pull --yes --environment=preview --git-branch=develop --token="$VERCEL_TOKEN"
+      - name: Pull preview settings
+        run: vercel pull --yes --environment=preview --git-branch="$GIT_BRANCH" --token="$VERCEL_TOKEN"
         env:
+          GIT_BRANCH: ${{ github.ref_name }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Build develop preview
+      - name: Build preview
         run: vercel build --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Deploy develop preview
+      - name: Deploy preview
         run: |
           vercel deploy --prebuilt --token="$VERCEL_TOKEN" \
             --meta githubDeployment=1 \
-            --meta githubCommitRef=develop > deployment-url.txt
+            --meta githubCommitRef="$GIT_BRANCH" > deployment-url.txt
           DEPLOYMENT_URL="$(cat deployment-url.txt)"
           if [[ ! "$DEPLOYMENT_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
             echo "Vercel did not return a valid deployment URL."
@@ -59,11 +61,12 @@ jobs:
           echo "Preview deployed: $DEPLOYMENT_URL"
         id: deploy
         env:
+          GIT_BRANCH: ${{ github.ref_name }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Check deployed preview with Lighthouse
+      - name: Check preview with Lighthouse
         run: >-
           npm exec -- lhci autorun
           --config=.lighthouserc.preview.json
@@ -75,7 +78,7 @@ jobs:
         if: always() && hashFiles('.lighthouseci/**') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-develop-reports
+          name: lighthouse-preview-reports
           path: .lighthouseci
           if-no-files-found: ignore
           retention-days: 14
