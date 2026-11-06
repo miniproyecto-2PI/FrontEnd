@@ -83,8 +83,10 @@ cp .env.example .env
 Configure la dirección completa del endpoint REST:
 
 ```ini
-VITE_API_URL=https://api-backend-uqpy.onrender.com/api/archetype/data
+VITE_API_URL=https://tu-api.onrender.com/api/archetype/data
 ```
+
+Reemplace `tu-api` por el nombre real del servicio en Render. Para ejecutar contra el backend local use `http://localhost:3000/api/archetype/data`. El archivo `.env.example` solo contiene valores de ejemplo; el valor real se configura en el `.env` local y en las variables de Vercel.
 
 Vite incorpora las variables con prefijo `VITE_` al código que recibe el navegador. Esta URL es pública; no almacene contraseñas, tokens ni credenciales en variables `VITE_*`. Los archivos `.env` locales están excluidos de Git; `.env.example` contiene solo el valor público de ejemplo.
 
@@ -124,7 +126,7 @@ La compilación queda en `dist/`.
 Construya la imagen desde esta carpeta. La URL de la API se define al compilar la aplicación:
 
 ```bash
-docker build --build-arg VITE_API_URL=https://api-backend-uqpy.onrender.com/api/archetype/data -t estudiemos-frontend .
+docker build --build-arg VITE_API_URL=https://tu-api.onrender.com/api/archetype/data -t estudiemos-frontend .
 docker run --rm -p 8080:80 estudiemos-frontend
 ```
 
@@ -178,6 +180,6 @@ La ruta `/base-tecnica` envía una petición `GET` a `VITE_API_URL` y desactiva 
 
 La interfaz muestra el contenido de `data` y contempla los estados **cargando**, **error** (con botón **Reintentar**) y **éxito**. El backend debe permitir por CORS el dominio de Vercel y responder con un estado HTTP no exitoso cuando falle la lectura.
 
-La integración utiliza el servicio **REST** `https://api-backend-uqpy.onrender.com/api/archetype/data`. La URL `https://backend-realtime-xumm.onrender.com` corresponde al servicio Realtime y no es el endpoint HTTP de datos que consume esta pantalla.
+La integración utiliza el servicio **REST** `https://tu-api.onrender.com/api/archetype/data`. La URL `https://tu-backend-realtime.onrender.com` corresponde al servicio Realtime y no es el endpoint HTTP de datos que consume esta pantalla.
 
 Si el despliegue muestra “La conexión con la API aún no está configurada”, compruebe el nombre exacto `VITE_API_URL`, que esté habilitada para el entorno del despliegue (Production o Preview, según corresponda), y que se haya creado un nuevo despliegue después de guardarla. Si aparece un error de carga, revise que el endpoint responda y que CORS permita el origen de Vercel.
