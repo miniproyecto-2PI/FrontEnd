@@ -12,17 +12,30 @@ export async function getBaseData(): Promise<unknown> {
 
   // Backend integration checklist: allow the Vercel origin in CORS, return JSON,
   // and use a non-2xx HTTP status with a safe message when the data read fails.
-  const response = await fetch(endpoint, { headers: { Accept: 'application/json' } })
+  // Always re-read the Firestore-backed value so a browser cache cannot hide updates.
+  const response = await fetch(endpoint, {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  })
   if (!response.ok) throw new Error(`La API respondió con estado ${response.status}.`)
   return response.json() as Promise<unknown>
 }
 
-export function getBaseMessage(data: unknown): string {
-  if (typeof data === 'string') return data
-  if (data && typeof data === 'object') {
-    const record = data as Record<string, unknown>
-    const message = record.message ?? record.mensaje
+export function getBaseMessage(responseData: unknown): string {
+  if (typeof responseData === 'string') return responseData
+  if (responseData && typeof responseData === 'object') {
+    const envelope = responseData as Record<string, unknown>
+
+    // The backend wraps the Firestore document in `data`; render that value
+    // instead of the envelope's generic success message.
+    if (envelope.data !== undefined && envelope.data !== null) {
+      return typeof envelope.data === 'string'
+        ? envelope.data
+        : JSON.stringify(envelope.data, null, 2) ?? String(envelope.data)
+    }
+
+    const message = envelope.message ?? envelope.mensaje
     if (typeof message === 'string') return message
   }
-  return JSON.stringify(data, null, 2) ?? String(data)
+  return JSON.stringify(responseData, null, 2) ?? String(responseData)
 }
