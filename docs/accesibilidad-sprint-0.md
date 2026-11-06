@@ -17,8 +17,9 @@ Esta guía define cómo revisar la base del frontend para que las personas ciega
 1. Navegar por la portada y `/base-tecnica` únicamente con teclado y confirmar que el enlace **Saltar al contenido** aparece al recibir foco.
 2. Con NVDA, recorrer encabezado, navegación, contenido principal y pie. Confirmar que el idioma, el título y los encabezados ayudan a identificar la página.
 3. En `/base-tecnica`, comprobar que el lector anuncia el estado de carga, el resultado o el error. En error, activar **Reintentar** con teclado.
-4. Ejecutar axe y Lighthouse en la pantalla base publicada. Registrar hallazgos y evidencia; para el Sprint 0, Lighthouse Accesibilidad debe ser 90 o superior.
+4. El workflow `.github/workflows/lighthouse.yml` ejecuta Lighthouse automáticamente en la portada y `/base-tecnica` para cada pull request a `main` y cada actualización de `main`. La verificación falla si la puntuación de Accesibilidad es menor a 90 y guarda los reportes como artefacto de la ejecución por 14 días.
+5. Para la evidencia de aceptación, ejecutar también Lighthouse sobre la URL publicada en Vercel y guardar el reporte de esa URL. La verificación local de CI no reemplaza esa evidencia de producción.
 
 ## Estado de la evidencia
 
-El build local no demuestra accesibilidad en producción. Para cerrar esta revisión faltan la URL publicada de `/base-tecnica`, el resultado de Lighthouse y evidencia de la navegación con NVDA. Las pantallas y flujos que se implementen en sprints posteriores deben probarse cuando estén disponibles.
+La automatización ya está configurada, pero hasta que la primera ejecución pase no hay un resultado de Lighthouse que registrar. Para cerrar esta revisión faltan la URL publicada de `/base-tecnica`, el resultado de Lighthouse en Vercel y evidencia de la navegación con NVDA. Las pantallas y flujos que se implementen en sprints posteriores deben probarse cuando estén disponibles.
