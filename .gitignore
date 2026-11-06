@@ -22,3 +22,4 @@ Thumbs.db
 *.tsbuildinfo
 .vercel
 .env*
+!.env.example
