@@ -43,6 +43,21 @@ La URL de `VITE_API_URL` se incluye al compilar. Cuando la API esté disponible,
 docker build --build-arg VITE_API_URL=https://tu-api.onrender.com/api/estado -t estudiemos-frontend .
 ```
 
+## Publicarlo en Vercel
+
+Importa el repositorio del frontend en Vercel. El proyecto usa Vite, así que la compilación es `npm run build` y la carpeta generada es `dist`.
+
+En la configuración del proyecto, agrega `VITE_API_URL` con la URL pública de Render seguida de `/api/archetype/data`. Define esa variable para Preview y Production. La URL del backend se debe confirmar con el equipo antes de publicarlo.
+
+Vercel puede generar una vista previa para la rama de esta historia y publicar producción desde `main` cuando se integre el pull request. El archivo `vercel.json` permite que las rutas de React Router, como `/base-tecnica`, sigan abriendo al recargar la página.
+
+El workflow `.github/workflows/deploy-vercel.yml` publica a producción cada vez que se actualiza `main`. Antes de usarlo, agrega estos secretos en GitHub, en **Settings → Secrets and variables → Actions**:
+
+- `VERCEL_TOKEN`: un Access Token creado en la cuenta de Vercel.
+- `VERCEL_ORG_ID` y `VERCEL_PROJECT_ID`: los identificadores del proyecto enlazado en Vercel. Se obtienen al enlazar el proyecto con `vercel link` y revisar `.vercel/project.json`.
+
+También configura `VITE_API_URL` en las variables de entorno del proyecto Vercel para Production. El archivo PEM de una clave pública no reemplaza `VERCEL_TOKEN`; no lo subas como secreto de despliegue.
+
 ## Rutas que dejé creadas
 
 `/`, `/base-tecnica`, `/beneficios`, `/como-funciona`, `/ingresar`, `/registro`, `/registro/usuario`, `/panel`, `/perfil`, `/salas`, `/salas/nueva`, `/salas/unirse`, `/salas/:id`, `/ayuda` y `/accesibilidad`.
