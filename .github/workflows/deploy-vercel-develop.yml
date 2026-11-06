@@ -1,0 +1,81 @@
+name: Deploy develop preview and check Lighthouse
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vercel-develop-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out develop
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull develop preview settings
+        run: vercel pull --yes --environment=preview --git-branch=develop --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build develop preview
+        run: vercel build --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy develop preview
+        run: |
+          vercel deploy --prebuilt --token="$VERCEL_TOKEN" \
+            --meta githubDeployment=1 \
+            --meta githubCommitRef=develop > deployment-url.txt
+          DEPLOYMENT_URL="$(cat deployment-url.txt)"
+          if [[ ! "$DEPLOYMENT_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
+            echo "Vercel did not return a valid deployment URL."
+            exit 1
+          fi
+          echo "deployment_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          echo "Preview deployed: $DEPLOYMENT_URL"
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Check deployed preview with Lighthouse
+        run: >-
+          npx --yes @lhci/cli@0.15.x autorun
+          --config=.lighthouserc.preview.json
+          --collect.url=${{ steps.deploy.outputs.deployment_url }}/
+          --collect.url=${{ steps.deploy.outputs.deployment_url }}/base-tecnica
+          --collect.numberOfRuns=3
+
+      - name: Save Lighthouse reports
+        if: always() && hashFiles('.lighthouseci/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-develop-reports
+          path: .lighthouseci
+          if-no-files-found: ignore
+          retention-days: 14
