@@ -14,9 +14,10 @@
     "react-router-dom": "latest"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.16.0",
+    "@tailwindcss/vite": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@tailwindcss/vite": "latest",
     "@vitejs/plugin-react": "latest",
     "tailwindcss": "latest",
     "typescript": "latest",

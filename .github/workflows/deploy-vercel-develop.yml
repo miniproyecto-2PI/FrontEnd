@@ -22,7 +22,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.19.0
           cache: npm
 
       - name: Install dependencies
@@ -65,7 +65,7 @@ jobs:
 
       - name: Check deployed preview with Lighthouse
         run: >-
-          npx --yes @lhci/cli@0.15.x autorun
+          npm exec -- lhci autorun
           --config=.lighthouserc.preview.json
           --collect.url=${{ steps.deploy.outputs.deployment_url }}/
           --collect.url=${{ steps.deploy.outputs.deployment_url }}/base-tecnica
