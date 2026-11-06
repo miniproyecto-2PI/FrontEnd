@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+# Aplicación de una sola página: todas las rutas públicas son indexables.
