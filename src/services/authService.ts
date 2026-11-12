@@ -28,6 +28,7 @@ const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutos
 export interface FailedAttemptsRecord {
   count: number
   lockoutUntil?: number
+  email?: string
 }
 
 export function getFailedAttempts(): FailedAttemptsRecord {
@@ -45,11 +46,15 @@ export function getFailedAttempts(): FailedAttemptsRecord {
   }
 }
 
-export function registerFailedAttempt(): FailedAttemptsRecord {
+export function registerFailedAttempt(email?: string): FailedAttemptsRecord {
   const current = getFailedAttempts()
   const newCount = current.count + 1
   const lockoutUntil = newCount >= MAX_FAILED_ATTEMPTS ? Date.now() + LOCKOUT_DURATION_MS : undefined
-  const updated: FailedAttemptsRecord = { count: newCount, lockoutUntil }
+  const updated: FailedAttemptsRecord = {
+    count: newCount,
+    lockoutUntil,
+    email: email || current.email,
+  }
   localStorage.setItem(STORAGE_FAILED_ATTEMPTS_KEY, JSON.stringify(updated))
   return updated
 }
@@ -289,14 +294,16 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
   // 1. Verificar si la cuenta está bloqueada temporalmente por rate limiting
   const failedRecord = getFailedAttempts()
   if (failedRecord.lockoutUntil && Date.now() < failedRecord.lockoutUntil) {
-    const remainingSeconds = Math.ceil((failedRecord.lockoutUntil - Date.now()) / 1000)
-    const minutes = Math.floor(remainingSeconds / 60)
-    const seconds = remainingSeconds % 60
-    const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
-    throw new AuthError(
-      `Demasiados intentos. Espera un momento e intenta de nuevo (tiempo restante: ${timeFormatted}).`,
-      'TOO_MANY_ATTEMPTS'
-    )
+    if (!failedRecord.email || failedRecord.email.toLowerCase() === cleanEmail) {
+      const remainingSeconds = Math.ceil((failedRecord.lockoutUntil - Date.now()) / 1000)
+      const minutes = Math.floor(remainingSeconds / 60)
+      const seconds = remainingSeconds % 60
+      const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+      throw new AuthError(
+        `Demasiados intentos. Espera un momento e intenta de nuevo (tiempo restante: ${timeFormatted}).`,
+        'TOO_MANY_ATTEMPTS'
+      )
+    }
   }
 
   // 2. Si Firebase Client Auth está configurado con credenciales válidas
@@ -338,7 +345,7 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
         code === 'auth/wrong-password' ||
         code === 'auth/invalid-email'
       ) {
-        registerFailedAttempt()
+        registerFailedAttempt(cleanEmail)
         // Criterio estricto de aceptación: mensaje genérico sin revelar cuál campo falló
         throw new AuthError('Correo o contraseña incorrectos', 'INVALID_CREDENTIALS')
       }
@@ -363,7 +370,7 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
     : password === 'Estudio2026' || password === 'password123'
 
   if (!matched || !isValidTestPassword) {
-    const updated = registerFailedAttempt()
+    const updated = registerFailedAttempt(cleanEmail)
     if (updated.lockoutUntil) {
       throw new AuthError('Demasiados intentos. Espera un momento e intenta de nuevo', 'TOO_MANY_ATTEMPTS')
     }

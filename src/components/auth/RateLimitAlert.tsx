@@ -6,6 +6,7 @@ export interface RateLimitAlertProps {
   email?: string
   onUnlock: () => void
   onRecoverPassword?: () => void
+  onSwitchAccount?: () => void
 }
 
 export function RateLimitAlert({
@@ -13,6 +14,7 @@ export function RateLimitAlert({
   email,
   onUnlock,
   onRecoverPassword,
+  onSwitchAccount,
 }: RateLimitAlertProps) {
   const calculateRemaining = () => Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000))
   const [secondsLeft, setSecondsLeft] = useState(calculateRemaining)
@@ -86,6 +88,17 @@ export function RateLimitAlert({
         >
           {secondsLeft > 0 ? `Espera ${formattedTime} para reintentar` : 'Reintentar inicio de sesión'}
         </Button>
+
+        {onSwitchAccount && (
+          <Button
+            variant="outline"
+            size="md"
+            fullWidth
+            onClick={onSwitchAccount}
+          >
+            Iniciar sesión con otra cuenta
+          </Button>
+        )}
 
         {onRecoverPassword && (
           <Button
