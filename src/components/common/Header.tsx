@@ -75,7 +75,9 @@ export function Header() {
                   >
                     {avatar?.icon}
                   </div>
-                  <span className="text-xs font-bold text-[#102c40]">{user.nombres.split(' ')[0]}</span>
+                  <span className="text-xs font-bold text-[#102c40]">
+                    {(user.firstName || user.nombres || 'Estudiante').split(' ')[0]}
+                  </span>
                 </Link>
                 <button
                   type="button"

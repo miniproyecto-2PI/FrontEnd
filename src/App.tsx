@@ -7,8 +7,10 @@ import { AuthProvider } from './context/AuthContext'
 import { HomePage, benefits } from './pages/HomePage'
 import { BaseTechnicalPage } from './pages/BaseTechnicalPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { ChooseUsernamePage } from './pages/ChooseUsernamePage'
 import { DashboardPage } from './pages/DashboardPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Inicio',
@@ -16,6 +18,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/como-funciona': 'Cómo funciona',
   '/ingresar': 'Iniciar sesión',
   '/registro': 'Crear cuenta',
+  '/elegir-usuario': 'Elegir nombre de usuario',
   '/registro/usuario': 'Elegir nombre de usuario',
   '/panel': 'Panel de estudio',
   '/dashboard': 'Panel de estudio',
@@ -103,26 +106,35 @@ function App() {
         />
         {/* US-01: Ruta de registro con los 4 estados y componentes base TS-06 */}
         <Route path="/registro" element={<RegisterPage />} />
+        {/* US-02: Flujo de selección obligatoria de nombre de usuario tras Google Auth */}
+        <Route path="/elegir-usuario" element={<ChooseUsernamePage />} />
+        <Route path="/registro/usuario" element={<Navigate to="/elegir-usuario" replace />} />
+        {/* Panel y rutas privadas protegidas por ProtectedRoute (S1-C04, US-02) */}
         <Route
-          path="/registro/usuario"
+          path="/panel"
           element={
-            <PageShell
-              title="Elegir nombre de usuario"
-              description="Pantalla prevista para el flujo de registro con Google (US-02)."
-            />
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
           }
         />
-        {/* Panel y redirección /dashboard */}
-        <Route path="/panel" element={<DashboardPage />} />
         <Route path="/dashboard" element={<Navigate to="/panel" replace />} />
 
         <Route
           path="/perfil"
-          element={<PageShell title="Perfil" description="Pantalla prevista en el mapa del sitio." />}
+          element={
+            <ProtectedRoute>
+              <PageShell title="Perfil" description="Pantalla prevista en el mapa del sitio." />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/salas/nueva"
-          element={<PageShell title="Crear una Sala" description="Pantalla prevista en el mapa del sitio." />}
+          element={
+            <ProtectedRoute>
+              <PageShell title="Crear una Sala" description="Pantalla prevista en el mapa del sitio." />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/salas/unirse"

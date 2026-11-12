@@ -27,19 +27,13 @@ export function RegisterForm({ form }: RegisterFormProps) {
     handleNextStep,
     handlePrevStep,
     handleSubmit,
-    setGeneralAlert,
   } = form
 
   const selectedAvatar =
     PRESET_AVATARS.find((a) => a.id === formData.avatar) || PRESET_AVATARS[0]
 
   const handleGoogleClick = () => {
-    setGeneralAlert({
-      variant: 'info',
-      title: 'Registro con Google',
-      message:
-        'El registro con Google te solicitará elegir tu nombre de usuario obligatorio antes de ingresar.',
-    })
+    void form.handleGoogleSignIn()
   }
 
   return (
