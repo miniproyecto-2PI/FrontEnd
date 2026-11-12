@@ -30,4 +30,3 @@ if (isFirebaseConfigured) {
 
 export const auth = authInstance as Auth
 export const googleProvider = googleProviderInstance as GoogleAuthProvider
-
