@@ -41,21 +41,12 @@ export function LoginForm({ form, onForgotPassword }: LoginFormProps) {
       )}
 
       <div className="bg-white border border-[#dfe9f1] rounded-2xl shadow-sm p-6 sm:p-9 transition-all">
-        {/* CARD HEADER */}
-        <div className="text-center mb-6">
-          <div
-            className="w-12 h-12 rounded-xl bg-[#eef5fa] text-[#1f4e79] flex items-center justify-center mx-auto mb-3 shadow-2xs"
-            aria-hidden="true"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#102c40]">
+        {/* CARD HEADER (Sin icono genérico de LucidChart) */}
+        <div className="text-left mb-6">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#1f4e79] mb-1.5 inline-block">
+            Portal Académico
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#102c40]">
             Bienvenido de nuevo
           </h1>
           <p className="text-xs sm:text-sm text-[#526679] mt-1.5 leading-relaxed">
@@ -99,7 +90,7 @@ export function LoginForm({ form, onForgotPassword }: LoginFormProps) {
             <div className="w-full border-t border-[#e2e8f0]" />
           </div>
           <span className="relative bg-white px-3 text-[11px] font-medium uppercase tracking-wider text-slate-400">
-            o
+            o con tu correo
           </span>
         </div>
 
