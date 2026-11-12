@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
-import { Badge } from '../ui/Badge'
 import { PRESET_AVATARS } from '../../constants/avatars'
 import type { UserProfile } from '../../types/auth'
 
@@ -12,6 +12,7 @@ export interface RegisterSuccessCardProps {
 export function RegisterSuccessCard({ user, onContinue }: RegisterSuccessCardProps) {
   const navigate = useNavigate()
   const avatar = PRESET_AVATARS.find((a) => a.id === user.avatarUrl) || PRESET_AVATARS[0]
+  const [countdown, setCountdown] = useState(5)
 
   const handleContinue = () => {
     if (onContinue) {
@@ -20,6 +21,21 @@ export function RegisterSuccessCard({ user, onContinue }: RegisterSuccessCardPro
       navigate('/panel')
     }
   }
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          handleContinue()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   return (
     <section
@@ -52,9 +68,6 @@ export function RegisterSuccessCard({ user, onContinue }: RegisterSuccessCardPro
             <p className="text-sm font-bold text-[#102c40] truncate">
               {user.nombres} {user.apellidos}
             </p>
-            <Badge variant="success" dot>
-              Cuenta activa
-            </Badge>
           </div>
           <p className="text-xs text-[#1f4e79] font-semibold">@{user.username}</p>
           <p className="text-xs text-[#627482] truncate mt-0.5">{user.email}</p>
@@ -75,8 +88,9 @@ export function RegisterSuccessCard({ user, onContinue }: RegisterSuccessCardPro
         >
           Continuar a mi panel
         </Button>
-        <p className="text-xs text-[#718292] flex items-center justify-center gap-1.5">
-          <span aria-hidden="true">⇄</span> Serás redirigido a tu Panel de estudio.
+        <p className="text-xs text-[#718292] flex items-center justify-center gap-1.5 font-medium">
+          <span aria-hidden="true">⏱</span> Serás dirigido a tu cuenta en{' '}
+          <span className="font-bold text-[#1f4e79] tabular-nums">{countdown}</span>...
         </p>
       </div>
     </section>
