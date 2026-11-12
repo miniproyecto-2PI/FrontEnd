@@ -2,9 +2,17 @@ import studentLaptop from '../../assets/notion-student-laptop.png'
 import studentBooks from '../../assets/notion-student-books.png'
 import studentDesk from '../../assets/notion-student-desk.png'
 
-export function NotionStudyScene() {
+export interface NotionStudySceneProps {
+  isFadingOut?: boolean
+}
+
+export function NotionStudyScene({ isFadingOut = false }: NotionStudySceneProps) {
   return (
-    <div className="hidden lg:flex lg:col-span-6 flex-col justify-between p-8 sm:p-9 rounded-3xl bg-linear-to-b from-[#f9fbfe] via-[#f1f6fb] to-[#e7f0f8] border border-[#d2e0ec] shadow-sm relative overflow-hidden min-h-[580px]">
+    <div
+      className={`flex flex-col justify-between p-8 sm:p-9 rounded-3xl bg-linear-to-b from-[#f9fbfe] via-[#f1f6fb] to-[#e7f0f8] border border-[#d2e0ec] shadow-sm relative overflow-hidden min-h-[580px] transition-all duration-500 ease-out ${
+        isFadingOut ? 'opacity-0 translate-x-8 scale-95' : 'opacity-100 translate-x-0 scale-100'
+      }`}
+    >
       {/* SUTILES ELEMENTOS DE AMBIENTACIÓN */}
       <div
         className="absolute -right-20 -top-20 w-72 h-72 rounded-full bg-blue-100/60 blur-3xl pointer-events-none"

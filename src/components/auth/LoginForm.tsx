@@ -7,9 +7,10 @@ import type { UseLoginFormReturn } from '../../hooks/useLoginForm'
 export interface LoginFormProps {
   form: UseLoginFormReturn
   onForgotPassword?: () => void
+  onNavigateRegister?: () => void
 }
 
-export function LoginForm({ form, onForgotPassword }: LoginFormProps) {
+export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginFormProps) {
   const {
     formData,
     errors,
@@ -185,6 +186,12 @@ export function LoginForm({ form, onForgotPassword }: LoginFormProps) {
             <span>¿No tienes cuenta? </span>
             <Link
               to="/registro"
+              onClick={(e) => {
+                if (onNavigateRegister) {
+                  e.preventDefault()
+                  onNavigateRegister()
+                }
+              }}
               className="font-bold text-[#1f4e79] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1f4e79] rounded px-1"
             >
               Regístrate

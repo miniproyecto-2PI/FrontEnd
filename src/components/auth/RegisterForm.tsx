@@ -149,11 +149,6 @@ export function RegisterForm({ form }: RegisterFormProps) {
                   size="lg"
                   fullWidth
                   onClick={() => void handleNextStep()}
-                  icon={
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  }
                 >
                   Continuar a credenciales →
                 </Button>
