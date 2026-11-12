@@ -1,17 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { GoogleAuthResult, RegisterFormData, RegisterResponse, UserProfile } from '../types/auth'
+import type { GoogleAuthResult, LoginCredentials, RegisterFormData, RegisterResponse, UserProfile } from '../types/auth'
 import {
   completeGoogleUsernameService,
+  loginUserService,
   registerUser,
   signInWithGoogleService,
 } from '../services/authService'
+import { auth, isFirebaseConfigured } from '../config/firebase'
+import { signOut } from 'firebase/auth'
 
 interface AuthContextType {
   user: UserProfile | null
   isAuthenticated: boolean
   profileComplete: boolean
   isLoading: boolean
+  login: (credentials: LoginCredentials) => Promise<UserProfile>
   register: (data: RegisterFormData) => Promise<RegisterResponse>
   loginWithGoogle: () => Promise<GoogleAuthResult>
   completeUsername: (username: string) => Promise<UserProfile>
@@ -23,6 +27,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const AUTH_USER_KEY = 'estudiemos_active_session'
+const AUTH_TOKEN_KEY = 'estudiemos_auth_token'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
@@ -54,6 +59,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const login = async (credentials: LoginCredentials): Promise<UserProfile> => {
+    const response = await loginUserService(credentials)
+    persistUser(response.user)
+    return response.user
+  }
+
   const register = async (data: RegisterFormData): Promise<RegisterResponse> => {
     const response = await registerUser(data)
     persistUser(response.user)
@@ -78,6 +89,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
+    if (isFirebaseConfigured) {
+      try {
+        void signOut(auth)
+      } catch {
+        // Ignorar
+      }
+    }
+    localStorage.removeItem(AUTH_TOKEN_KEY)
     persistUser(null)
   }
 
@@ -92,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         profileComplete: Boolean(user?.profileComplete),
         isLoading,
+        login,
         register,
         loginWithGoogle,
         completeUsername,

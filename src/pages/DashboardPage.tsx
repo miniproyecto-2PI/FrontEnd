@@ -53,8 +53,8 @@ export function DashboardPage() {
 
   const handleLogout = () => {
     logout()
-    // Criterio S1-C04: "Cerrar sesión lleva al inicio"
-    navigate('/')
+    // Criterio US-03: Cierre de sesión me lleva al login y no permite volver con atrás
+    navigate('/ingresar', { replace: true })
   }
 
   return (
@@ -72,7 +72,7 @@ export function DashboardPage() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold text-[#102c40]">
-                  {user.nombres} {user.apellidos}
+                  {user.firstName || user.nombres} {user.lastName || user.apellidos}
                 </h1>
                 <Badge variant="success" dot>
                   Cuenta activa
