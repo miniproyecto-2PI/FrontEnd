@@ -25,6 +25,7 @@ export interface UseRegisterFormReturn {
   errors: FormErrors
   generalAlert: GeneralAlertState | null
   isLoading: boolean
+  isGoogleConnecting: boolean
   successUser: UserProfile | null
   usernameStatus: UsernameStatus
   detectedUniversity: string | null
@@ -39,13 +40,15 @@ export interface UseRegisterFormReturn {
   handleChange: (field: keyof RegisterFormData, value: string) => void
   handleUsernameBlur: () => Promise<void>
   handleSubmit: (e?: FormEvent) => Promise<void>
+  handleGoogleSignIn: () => Promise<void>
+  handleCancelGoogle: () => void
   setGeneralAlert: (alert: GeneralAlertState | null) => void
   dismissAlert: () => void
 }
 
 export function useRegisterForm(): UseRegisterFormReturn {
   const navigate = useNavigate()
-  const { register, isAuthenticated } = useAuth()
+  const { register, loginWithGoogle, isAuthenticated, profileComplete } = useAuth()
 
   // Form Data State
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -62,6 +65,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const [errors, setErrors] = useState<FormErrors>({})
   const [generalAlert, setGeneralAlert] = useState<GeneralAlertState | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleConnecting, setIsGoogleConnecting] = useState(false)
   const [successUser, setSuccessUser] = useState<UserProfile | null>(null)
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [detectedUniversity, setDetectedUniversity] = useState<string | null>(null)
@@ -74,14 +78,14 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const passwordRef = useRef<HTMLInputElement>(null)
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
 
-  // If already authenticated and not in success view, redirect to panel
+  // Redirección si ya está autenticado con perfil completo
   useEffect(() => {
-    if (isAuthenticated && !successUser) {
+    if (isAuthenticated && profileComplete && !successUser) {
       navigate('/panel', { replace: true })
     }
-  }, [isAuthenticated, successUser, navigate])
+  }, [isAuthenticated, profileComplete, successUser, navigate])
 
-  // Real-time University Detection
+  // Detección automática de dominio universitario
   useEffect(() => {
     const uni = getUniversityName(formData.email)
     setDetectedUniversity(uni)
@@ -103,7 +107,6 @@ export function useRegisterForm(): UseRegisterFormReturn {
     }
   }
 
-  // Real-time Username Availability Check on Blur
   const handleUsernameBlur = async () => {
     const error = validateUsername(formData.username)
     if (error) {
@@ -137,7 +140,6 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const handleChange = (field: keyof RegisterFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
 
-    // Clear specific field error as user types
     if (errors[field]) {
       setErrors((prev) => {
         const next = { ...prev }
@@ -152,11 +154,44 @@ export function useRegisterForm(): UseRegisterFormReturn {
 
   const dismissAlert = () => setGeneralAlert(null)
 
+  const handleGoogleSignIn = async () => {
+    setIsGoogleConnecting(true)
+    setGeneralAlert(null)
+
+    try {
+      const result = await loginWithGoogle()
+      setIsGoogleConnecting(false)
+
+      // Criterio US-02: si es su primer ingreso o perfil incompleto, va a /elegir-usuario
+      if (result.isNewUser || !result.user.profileComplete) {
+        navigate('/elegir-usuario')
+      } else {
+        navigate('/panel')
+      }
+    } catch (err) {
+      setIsGoogleConnecting(false)
+      const msg = err instanceof Error ? err.message : 'No pudimos conectar con Google. Intenta de nuevo'
+      setGeneralAlert({
+        variant: 'error',
+        title: 'Error de ingreso con Google',
+        message: msg,
+      })
+    }
+  }
+
+  const handleCancelGoogle = () => {
+    setIsGoogleConnecting(false)
+    setGeneralAlert({
+      variant: 'info',
+      title: 'Ingreso cancelado',
+      message: 'Se canceló la conexión con Google. Puedes intentar de nuevo o registrarte manualmente.',
+    })
+  }
+
   const handleSubmit = async (e?: FormEvent) => {
     if (e) e.preventDefault()
     setGeneralAlert(null)
 
-    // 1. Client-Side Validation
     const { isValid, errors: validationErrors, firstErrorField } = validateRegisterForm(formData)
 
     if (!isValid) {
@@ -173,12 +208,10 @@ export function useRegisterForm(): UseRegisterFormReturn {
       return
     }
 
-    // 2. Submit Execution (Loading State)
     setIsLoading(true)
 
     try {
       const response = await register(formData)
-      // 3. Success State
       setSuccessUser(response.user)
       setIsLoading(false)
     } catch (err: unknown) {
@@ -245,6 +278,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     errors,
     generalAlert,
     isLoading,
+    isGoogleConnecting,
     successUser,
     usernameStatus,
     detectedUniversity,
@@ -259,6 +293,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
     handleChange,
     handleUsernameBlur,
     handleSubmit,
+    handleGoogleSignIn,
+    handleCancelGoogle,
     setGeneralAlert,
     dismissAlert,
   }

@@ -23,15 +23,10 @@ export function RegisterForm({ form }: RegisterFormProps) {
     handleChange,
     handleUsernameBlur,
     handleSubmit,
-    setGeneralAlert,
   } = form
 
   const handleGoogleClick = () => {
-    setGeneralAlert({
-      variant: 'info',
-      title: 'Registro con Google',
-      message: 'El registro con Google te solicitará elegir tu nombre de usuario obligatorio antes de ingresar (US-02 en Sprint 1).',
-    })
+    void form.handleGoogleSignIn()
   }
 
   return (

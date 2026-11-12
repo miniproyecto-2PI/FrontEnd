@@ -1,13 +1,21 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { RegisterFormData, RegisterResponse, UserProfile } from '../types/auth'
-import { registerUser } from '../services/authService'
+import type { GoogleAuthResult, RegisterFormData, RegisterResponse, UserProfile } from '../types/auth'
+import {
+  completeGoogleUsernameService,
+  registerUser,
+  signInWithGoogleService,
+} from '../services/authService'
 
 interface AuthContextType {
   user: UserProfile | null
   isAuthenticated: boolean
+  profileComplete: boolean
   isLoading: boolean
   register: (data: RegisterFormData) => Promise<RegisterResponse>
+  loginWithGoogle: () => Promise<GoogleAuthResult>
+  completeUsername: (username: string) => Promise<UserProfile>
+  cancelGoogleAuth: () => void
   logout: () => void
   setUserDirectly: (user: UserProfile | null) => void
 }
@@ -27,39 +35,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(JSON.parse(stored) as UserProfile)
       }
     } catch {
-      // Ignore parse errors
+      // Storage unavailable
     } finally {
       setIsLoading(false)
     }
   }, [])
 
+  const persistUser = (newUser: UserProfile | null) => {
+    setUser(newUser)
+    try {
+      if (newUser) {
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(newUser))
+      } else {
+        localStorage.removeItem(AUTH_USER_KEY)
+      }
+    } catch {
+      // Storage quota or error
+    }
+  }
+
   const register = async (data: RegisterFormData): Promise<RegisterResponse> => {
     const response = await registerUser(data)
-    setUser(response.user)
-    try {
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user))
-    } catch {
-      // Storage unavailable
-    }
+    persistUser(response.user)
     return response
   }
 
+  const loginWithGoogle = async (): Promise<GoogleAuthResult> => {
+    const result = await signInWithGoogleService()
+    persistUser(result.user)
+    return result
+  }
+
+  const completeUsername = async (username: string): Promise<UserProfile> => {
+    if (!user) throw new Error('No hay una sesión activa para completar el nombre de usuario.')
+    const updated = await completeGoogleUsernameService(username, user)
+    persistUser(updated)
+    return updated
+  }
+
+  const cancelGoogleAuth = () => {
+    persistUser(null)
+  }
+
   const logout = () => {
-    setUser(null)
-    try {
-      localStorage.removeItem(AUTH_USER_KEY)
-    } catch {
-      // Ignore
-    }
+    persistUser(null)
   }
 
   const setUserDirectly = (newUser: UserProfile | null) => {
-    setUser(newUser)
-    if (newUser) {
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(newUser))
-    } else {
-      localStorage.removeItem(AUTH_USER_KEY)
-    }
+    persistUser(newUser)
   }
 
   return (
@@ -67,8 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        profileComplete: Boolean(user?.profileComplete),
         isLoading,
         register,
+        loginWithGoogle,
+        completeUsername,
+        cancelGoogleAuth,
         logout,
         setUserDirectly,
       }}
@@ -85,4 +112,3 @@ export function useAuth() {
   }
   return context
 }
-

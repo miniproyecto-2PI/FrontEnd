@@ -8,9 +8,13 @@ export interface PresetAvatar {
   icon: ReactNode
 }
 
+/**
+ * Catálogo de avatares predeterminados alineado 1:1 con AVATAR_IDS del backend
+ * (avatar-01 .. avatar-08)
+ */
 export const PRESET_AVATARS: PresetAvatar[] = [
   {
-    id: 'avatar-estudiante-azul',
+    id: 'avatar-01',
     label: 'Estudiante (Azul)',
     bgColor: '#e7f1fb',
     textColor: '#1f4e79',
@@ -21,7 +25,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-estudiante-coral',
+    id: 'avatar-02',
     label: 'Estudiante (Coral)',
     bgColor: '#fdeee9',
     textColor: '#c25e3d',
@@ -33,7 +37,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-buho-sabiduria',
+    id: 'avatar-03',
     label: 'Búho Sabio',
     bgColor: '#e8f5ef',
     textColor: '#1e654d',
@@ -46,7 +50,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-libros-estudio',
+    id: 'avatar-04',
     label: 'Lectura y Libros',
     bgColor: '#fef6ee',
     textColor: '#b25e29',
@@ -57,7 +61,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-ciencia-investigacion',
+    id: 'avatar-05',
     label: 'Ciencia e Investigación',
     bgColor: '#eef8f8',
     textColor: '#196b75',
@@ -68,7 +72,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-pluma-academica',
+    id: 'avatar-06',
     label: 'Pluma Académica',
     bgColor: '#f5f0fa',
     textColor: '#5e3a87',
@@ -79,7 +83,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-brujula-enfoque',
+    id: 'avatar-07',
     label: 'Brújula y Enfoque',
     bgColor: '#f1f5f9',
     textColor: '#334155',
@@ -92,7 +96,7 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     ),
   },
   {
-    id: 'avatar-cohete-innovacion',
+    id: 'avatar-08',
     label: 'Meta y Progreso',
     bgColor: '#fff8ea',
     textColor: '#9a6308',
