@@ -52,8 +52,37 @@ export interface GoogleAuthResult {
   message?: string
 }
 
+export interface LoginCredentials {
+  email: string
+  password: string
+  rememberMe?: boolean
+}
+
+export interface LoginResponse {
+  user: UserProfile
+  token: string
+  message?: string
+}
+
+export type LoginErrorCode =
+  | 'INVALID_CREDENTIALS'
+  | 'TOO_MANY_ATTEMPTS'
+  | 'NETWORK_ERROR'
+  | 'VALIDATION_ERROR'
+  | 'UNAUTHENTICATED'
+  | 'UNKNOWN'
+
 export interface ApiErrorResponse {
-  code: 'USERNAME_TAKEN' | 'EMAIL_IN_USE' | 'VALIDATION_ERROR' | 'NETWORK_ERROR' | 'INTERNAL_ERROR' | 'PROFILE_INCOMPLETE' | 'UNAUTHENTICATED'
+  code:
+    | 'USERNAME_TAKEN'
+    | 'EMAIL_IN_USE'
+    | 'VALIDATION_ERROR'
+    | 'NETWORK_ERROR'
+    | 'INTERNAL_ERROR'
+    | 'PROFILE_INCOMPLETE'
+    | 'UNAUTHENTICATED'
+    | 'INVALID_CREDENTIALS'
+    | 'TOO_MANY_ATTEMPTS'
   message: string
   details?: Record<string, string>
 }

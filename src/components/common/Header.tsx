@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { PRESET_AVATARS } from '../ui/AvatarSelector'
 
@@ -13,7 +13,13 @@ const navLinks = [
 export function Header() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/ingresar', { replace: true })
+  }
 
   useEffect(() => {
     setOpen(false)
@@ -81,10 +87,11 @@ export function Header() {
                 </Link>
                 <button
                   type="button"
-                  onClick={logout}
-                  className="text-xs font-semibold text-slate-500 hover:text-red-700"
+                  onClick={handleLogout}
+                  className="text-xs font-semibold text-slate-500 hover:text-red-700 transition-colors"
+                  title="Cerrar sesión"
                 >
-                  Salir
+                  Cerrar sesión
                 </button>
               </div>
             ) : (

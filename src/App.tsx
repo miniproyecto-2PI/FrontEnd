@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext'
 import { HomePage, benefits } from './pages/HomePage'
 import { BaseTechnicalPage } from './pages/BaseTechnicalPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { LoginPage } from './pages/LoginPage'
 import { ChooseUsernamePage } from './pages/ChooseUsernamePage'
 import { DashboardPage } from './pages/DashboardPage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -17,6 +18,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/beneficios': 'Beneficios',
   '/como-funciona': 'Cómo funciona',
   '/ingresar': 'Iniciar sesión',
+  '/login': 'Iniciar sesión',
   '/registro': 'Crear cuenta',
   '/elegir-usuario': 'Elegir nombre de usuario',
   '/registro/usuario': 'Elegir nombre de usuario',
@@ -95,15 +97,9 @@ function App() {
             </PageShell>
           }
         />
-        <Route
-          path="/ingresar"
-          element={
-            <PageShell
-              title="Iniciar sesión"
-              description="Pantalla base prevista en el mapa del sitio. El flujo de autenticación completo se desarrollará en el Sprint 1."
-            />
-          }
-        />
+        {/* US-03: Ruta de inicio de sesión con correo y Google (/ingresar y /login) */}
+        <Route path="/ingresar" element={<LoginPage />} />
+        <Route path="/login" element={<Navigate to="/ingresar" replace />} />
         {/* US-01: Ruta de registro con los 4 estados y componentes base TS-06 */}
         <Route path="/registro" element={<RegisterPage />} />
         {/* US-02: Flujo de selección obligatoria de nombre de usuario tras Google Auth */}

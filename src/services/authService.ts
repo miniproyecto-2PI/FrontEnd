@@ -1,33 +1,77 @@
-import { signInWithPopup } from 'firebase/auth'
+import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase'
-import type { GoogleAuthResult, RegisterFormData, RegisterResponse, UserProfile } from '../types/auth'
+import type {
+  GoogleAuthResult,
+  LoginCredentials,
+  LoginResponse,
+  RegisterFormData,
+  RegisterResponse,
+  UserProfile,
+} from '../types/auth'
 import { PRESET_AVATARS } from '../constants/avatars'
 
 // Registros preexistentes para pruebas de unicidad y simulación offline
-const INITIAL_USERS: Array<{ username: string; email: string; name: string }> = [
-  { username: 'ana_01', email: 'ana.martinez@univalle.edu.co', name: 'Ana Martínez' },
-  { username: 'mateocardona', email: 'mateo.cardona@udea.edu.co', name: 'Mateo Cardona' },
-  { username: 'mateo', email: 'mateo.test@udea.edu.co', name: 'Mateo Test' },
-  { username: 'camilarestrepo', email: 'camila.restrepo@unal.edu.co', name: 'Camila Restrepo' },
+const INITIAL_USERS: Array<{ username: string; email: string; name: string; password?: string }> = [
+  { username: 'ana_01', email: 'ana.martinez@univalle.edu.co', name: 'Ana Martínez', password: 'Estudio2026' },
+  { username: 'mateocardona', email: 'mateo.cardona@udea.edu.co', name: 'Mateo Cardona', password: 'Estudio2026' },
+  { username: 'mateo', email: 'mateo.test@udea.edu.co', name: 'Mateo Test', password: 'Estudio2026' },
+  { username: 'camilarestrepo', email: 'camila.restrepo@unal.edu.co', name: 'Camila Restrepo', password: 'Estudio2026' },
 ]
 
 const STORAGE_USERS_KEY = 'estudiemos_registered_users'
 const STORAGE_TOKEN_KEY = 'estudiemos_auth_token'
+const STORAGE_GOOGLE_PROFILE_KEY = 'estudiemos_google_profile'
+const STORAGE_FAILED_ATTEMPTS_KEY = 'estudiemos_failed_attempts'
+const MAX_FAILED_ATTEMPTS = 5
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutos
 
-function getStoredUsers(): Array<{ username: string; email: string; name: string }> {
+export interface FailedAttemptsRecord {
+  count: number
+  lockoutUntil?: number
+}
+
+export function getFailedAttempts(): FailedAttemptsRecord {
+  try {
+    const raw = localStorage.getItem(STORAGE_FAILED_ATTEMPTS_KEY)
+    if (!raw) return { count: 0 }
+    const record = JSON.parse(raw) as FailedAttemptsRecord
+    if (record.lockoutUntil && Date.now() > record.lockoutUntil) {
+      localStorage.removeItem(STORAGE_FAILED_ATTEMPTS_KEY)
+      return { count: 0 }
+    }
+    return record
+  } catch {
+    return { count: 0 }
+  }
+}
+
+export function registerFailedAttempt(): FailedAttemptsRecord {
+  const current = getFailedAttempts()
+  const newCount = current.count + 1
+  const lockoutUntil = newCount >= MAX_FAILED_ATTEMPTS ? Date.now() + LOCKOUT_DURATION_MS : undefined
+  const updated: FailedAttemptsRecord = { count: newCount, lockoutUntil }
+  localStorage.setItem(STORAGE_FAILED_ATTEMPTS_KEY, JSON.stringify(updated))
+  return updated
+}
+
+export function resetFailedAttempts(): void {
+  localStorage.removeItem(STORAGE_FAILED_ATTEMPTS_KEY)
+}
+
+function getStoredUsers(): Array<{ username: string; email: string; name: string; password?: string }> {
   try {
     const raw = localStorage.getItem(STORAGE_USERS_KEY)
     if (!raw) {
       localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(INITIAL_USERS))
       return INITIAL_USERS
     }
-    return JSON.parse(raw) as Array<{ username: string; email: string; name: string }>
+    return JSON.parse(raw) as Array<{ username: string; email: string; name: string; password?: string }>
   } catch {
     return INITIAL_USERS
   }
 }
 
-function saveStoredUser(user: { username: string; email: string; name: string }) {
+function saveStoredUser(user: { username: string; email: string; name: string; password?: string }) {
   try {
     const users = getStoredUsers()
     users.push(user)
@@ -49,7 +93,15 @@ function getApiBaseUrl(): string {
 }
 
 export class AuthError extends Error {
-  code: 'USERNAME_TAKEN' | 'EMAIL_ALREADY_IN_USE' | 'VALIDATION_ERROR' | 'NETWORK_ERROR' | 'UNKNOWN'
+  code:
+    | 'USERNAME_TAKEN'
+    | 'EMAIL_ALREADY_IN_USE'
+    | 'VALIDATION_ERROR'
+    | 'NETWORK_ERROR'
+    | 'INVALID_CREDENTIALS'
+    | 'TOO_MANY_ATTEMPTS'
+    | 'UNAUTHENTICATED'
+    | 'UNKNOWN'
   field?: 'username' | 'email' | 'password' | 'nombres' | 'apellidos' | 'general'
 
   constructor(message: string, code: AuthError['code'], field?: AuthError['field']) {
@@ -226,15 +278,140 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
 }
 
 /**
- * Autenticación con Google (US-02)
- * Se conecta con Google y consulta GET /api/users/me. Si el perfil está incompleto (username = null),
- * profileComplete es false y requiere elegir username.
+ * Inicio de sesión (US-03)
+ * Valida credenciales manuales, consulta GET /api/users/me o simula verificación estricta.
+ */
+export async function loginUserService(credentials: LoginCredentials): Promise<LoginResponse> {
+  const baseUrl = getApiBaseUrl()
+  const cleanEmail = credentials.email.trim().toLowerCase()
+  const password = credentials.password
+
+  // 1. Verificar si la cuenta está bloqueada temporalmente por rate limiting
+  const failedRecord = getFailedAttempts()
+  if (failedRecord.lockoutUntil && Date.now() < failedRecord.lockoutUntil) {
+    const remainingSeconds = Math.ceil((failedRecord.lockoutUntil - Date.now()) / 1000)
+    const minutes = Math.floor(remainingSeconds / 60)
+    const seconds = remainingSeconds % 60
+    const timeFormatted = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+    throw new AuthError(
+      `Demasiados intentos. Espera un momento e intenta de nuevo (tiempo restante: ${timeFormatted}).`,
+      'TOO_MANY_ATTEMPTS'
+    )
+  }
+
+  // 2. Si Firebase Client Auth está configurado con credenciales válidas
+  if (isFirebaseConfigured && auth) {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, cleanEmail, password)
+      const idToken = await cred.user.getIdToken()
+      localStorage.setItem(STORAGE_TOKEN_KEY, idToken)
+      resetFailedAttempts()
+
+      const meResponse = await fetch(`${baseUrl}/api/users/me`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          Accept: 'application/json',
+        },
+      })
+
+      if (meResponse.ok) {
+        const json = (await meResponse.json()) as { data: UserProfile; message?: string }
+        const profile = json.data
+        return {
+          user: {
+            ...profile,
+            id: profile.uid,
+            nombres: profile.firstName,
+            apellidos: profile.lastName,
+            avatarUrl: profile.avatar || 'avatar-01',
+          },
+          token: idToken,
+          message: json.message || '¡Bienvenido de nuevo!',
+        }
+      }
+    } catch (err: unknown) {
+      const errorObj = err as { code?: string; message?: string }
+      const code = errorObj?.code || ''
+      if (
+        code === 'auth/invalid-credential' ||
+        code === 'auth/user-not-found' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/invalid-email'
+      ) {
+        registerFailedAttempt()
+        // Criterio estricto de aceptación: mensaje genérico sin revelar cuál campo falló
+        throw new AuthError('Correo o contraseña incorrectos', 'INVALID_CREDENTIALS')
+      }
+      if (code === 'auth/too-many-requests') {
+        throw new AuthError('Demasiados intentos. Espera un momento e intenta de nuevo', 'TOO_MANY_ATTEMPTS')
+      }
+      if (code === 'auth/network-request-failed') {
+        throw new AuthError('No pudimos conectar. Revisa tu conexión', 'NETWORK_ERROR')
+      }
+    }
+  }
+
+  // 3. Simulación realista offline / local de verificación de credenciales
+  await new Promise((resolve) => setTimeout(resolve, 800))
+
+  const storedUsers = getStoredUsers()
+  const matched = storedUsers.find((u) => u.email.toLowerCase() === cleanEmail)
+
+  // En simulación: se verifica la contraseña registrada o la contraseña demo 'Estudio2026'
+  const isValidTestPassword = matched?.password
+    ? password === matched.password
+    : password === 'Estudio2026' || password === 'password123'
+
+  if (!matched || !isValidTestPassword) {
+    const updated = registerFailedAttempt()
+    if (updated.lockoutUntil) {
+      throw new AuthError('Demasiados intentos. Espera un momento e intenta de nuevo', 'TOO_MANY_ATTEMPTS')
+    }
+    // Criterio de aceptación: mensaje genérico estricto
+    throw new AuthError('Correo o contraseña incorrectos', 'INVALID_CREDENTIALS')
+  }
+
+  resetFailedAttempts()
+  const token = `token_sim_${Date.now()}`
+  localStorage.setItem(STORAGE_TOKEN_KEY, token)
+
+  const names = matched.name.split(' ')
+  const firstName = names[0] || 'Estudiante'
+  const lastName = names.slice(1).join(' ') || ''
+
+  const profile: UserProfile = {
+    uid: `usr_${matched.username}`,
+    id: `usr_${matched.username}`,
+    firstName,
+    lastName,
+    nombres: firstName,
+    apellidos: lastName,
+    username: matched.username,
+    email: matched.email,
+    avatar: 'avatar-01',
+    avatarUrl: 'avatar-01',
+    provider: 'password',
+    profileComplete: true,
+    createdAt: new Date().toISOString(),
+  }
+
+  return {
+    user: profile,
+    token,
+    message: '¡Bienvenido de nuevo!',
+  }
+}
+
+/**
+ * Autenticación con Google (US-02, US-03)
+ * Si el usuario ya tiene username (recurrente), profileComplete es true (US-03).
+ * Si es nuevo, profileComplete es false y requiere elegir username (US-02).
  */
 export async function signInWithGoogleService(): Promise<GoogleAuthResult> {
   const baseUrl = getApiBaseUrl()
 
   // 1. Si Firebase client SDK tiene credenciales reales, ejecutar flujo nativo
-  if (isFirebaseConfigured) {
+  if (isFirebaseConfigured && auth && googleProvider) {
     try {
       const cred = await signInWithPopup(auth, googleProvider)
       const idToken = await cred.user.getIdToken()
@@ -273,8 +450,27 @@ export async function signInWithGoogleService(): Promise<GoogleAuthResult> {
     }
   }
 
-  // 2. Simulación interactiva fiel al mockup de Mateo Cardona (UdeA)
-  await new Promise((resolve) => setTimeout(resolve, 1400))
+  // 2. Simulación interactiva: si el usuario de Google ya completó su perfil antes (recurrente US-03)
+  const storedGoogleProfile = localStorage.getItem(STORAGE_GOOGLE_PROFILE_KEY)
+  if (storedGoogleProfile) {
+    try {
+      const parsed = JSON.parse(storedGoogleProfile) as UserProfile
+      if (parsed.profileComplete && parsed.username) {
+        await new Promise((resolve) => setTimeout(resolve, 800))
+        return {
+          user: parsed,
+          isNewUser: false, // Login con Google recurrente -> directo al panel (US-03)
+          token: `mock_google_token_${Date.now()}`,
+          message: '¡Bienvenido de nuevo!',
+        }
+      }
+    } catch {
+      // Ignorar error de parsing
+    }
+  }
+
+  // 3. Primer ingreso con Google: perfil incompleto sin username (US-02)
+  await new Promise((resolve) => setTimeout(resolve, 1200))
 
   const mockGoogleUser: UserProfile = {
     uid: `google_usr_${Date.now()}`,
@@ -366,10 +562,12 @@ export async function completeGoogleUsernameService(
     name: `${user.firstName} ${user.lastName}`,
   })
 
-  return {
+  const completedProfile: UserProfile = {
     ...user,
     username: cleanUsername,
     profileComplete: true,
     updatedAt: new Date().toISOString(),
   }
+  localStorage.setItem(STORAGE_GOOGLE_PROFILE_KEY, JSON.stringify(completedProfile))
+  return completedProfile
 }
