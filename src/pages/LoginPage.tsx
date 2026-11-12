@@ -64,6 +64,7 @@ export function LoginPage() {
                 email={form.formData.email}
                 onUnlock={form.handleUnlock}
                 onRecoverPassword={handleForgotPassword}
+                onSwitchAccount={form.handleSwitchAccount}
               />
             </div>
           ) : (
