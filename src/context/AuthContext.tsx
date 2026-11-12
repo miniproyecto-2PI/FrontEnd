@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    if (isFirebaseConfigured) {
+    if (isFirebaseConfigured && auth) {
       try {
         void signOut(auth)
       } catch {

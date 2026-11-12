@@ -300,7 +300,7 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
   }
 
   // 2. Si Firebase Client Auth está configurado con credenciales válidas
-  if (isFirebaseConfigured) {
+  if (isFirebaseConfigured && auth) {
     try {
       const cred = await signInWithEmailAndPassword(auth, cleanEmail, password)
       const idToken = await cred.user.getIdToken()
@@ -411,7 +411,7 @@ export async function signInWithGoogleService(): Promise<GoogleAuthResult> {
   const baseUrl = getApiBaseUrl()
 
   // 1. Si Firebase client SDK tiene credenciales reales, ejecutar flujo nativo
-  if (isFirebaseConfigured) {
+  if (isFirebaseConfigured && auth && googleProvider) {
     try {
       const cred = await signInWithPopup(auth, googleProvider)
       const idToken = await cred.user.getIdToken()
