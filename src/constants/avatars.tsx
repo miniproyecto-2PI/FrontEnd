@@ -8,101 +8,148 @@ export interface PresetAvatar {
   icon: ReactNode
 }
 
-/**
- * Catálogo de avatares predeterminados alineado 1:1 con AVATAR_IDS del backend
- * (avatar-01 .. avatar-08)
- */
 export const PRESET_AVATARS: PresetAvatar[] = [
   {
     id: 'avatar-01',
-    label: 'Estudiante (Azul)',
+    label: 'Sofía (Ciencias)',
     bgColor: '#e7f1fb',
     textColor: '#1f4e79',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Cabello largo recogido con cola */}
+        <path d="M10 13c0-4 2.5-7 6-7s6 3 6 7v3H10v-3z" fill="currentColor" fillOpacity={0.15} />
+        {/* Cabeza / Rostro */}
+        <circle cx="16" cy="14" r="5" strokeLinecap="round" />
+        {/* Gafas de lectura */}
+        <circle cx="14" cy="14" r="1.5" />
+        <circle cx="18" cy="14" r="1.5" />
+        <path d="M15.5 14h1" strokeLinecap="round" />
+        {/* Hombros y cuello */}
+        <path d="M10 27c0-4 2.5-7 6-7s6 3 6 7" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     id: 'avatar-02',
-    label: 'Estudiante (Coral)',
-    bgColor: '#fdeee9',
-    textColor: '#c25e3d',
+    label: 'Mateo (Ingeniería)',
+    bgColor: '#e8f5ef',
+    textColor: '#1e654d',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Auriculares de concentración */}
+        <path d="M8 15a8 8 0 0116 0" strokeLinecap="round" />
+        <rect x="7" y="14" width="2.5" height="5" rx="1.25" fill="currentColor" />
+        <rect x="22.5" y="14" width="2.5" height="5" rx="1.25" fill="currentColor" />
+        {/* Cabeza */}
+        <circle cx="16" cy="15" r="4.5" strokeLinecap="round" />
+        {/* Pelo corto moderno */}
+        <path d="M12 12c1.5-2 3.5-3 6.5-2" strokeLinecap="round" />
+        {/* Hombros con sudadera */}
+        <path d="M9 27c0-4 3-6.5 7-6.5s7 2.5 7 6.5" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     id: 'avatar-03',
-    label: 'Búho Sabio',
-    bgColor: '#e8f5ef',
-    textColor: '#1e654d',
+    label: 'Valentina (Medicina)',
+    bgColor: '#fef3e7',
+    textColor: '#a35b1d',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <circle cx="9" cy="10" r="3" />
-        <circle cx="15" cy="10" r="3" />
-        <path strokeLinecap="round" d="M12 11v3m0 0l-1-1m1 1l1-1M4 19c2-3 4-5 8-5s6 2 8 5" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Moño / rodete superior */}
+        <circle cx="16" cy="7.5" r="2" fill="currentColor" fillOpacity={0.2} />
+        {/* Cabeza */}
+        <circle cx="16" cy="14" r="5" strokeLinecap="round" />
+        <path d="M11 13c1-2.5 3-4 5-4s4 1.5 5 4" strokeLinecap="round" />
+        {/* Cuello y estetoscopio estilizado */}
+        <path d="M10 27c0-4 2.5-7 6-7s6 3 6 7" strokeLinecap="round" />
+        <path d="M14 20v2.5a2 2 0 004 0V20" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     id: 'avatar-04',
-    label: 'Lectura y Libros',
-    bgColor: '#fef6ee',
-    textColor: '#b25e29',
+    label: 'Camilo (Filosofía)',
+    bgColor: '#f3e8ff',
+    textColor: '#7c3aed',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Boina académica */}
+        <path d="M10 11c2-3 8-3 12 0-3 1-9 1-12 0z" fill="currentColor" fillOpacity={0.2} />
+        <circle cx="16" cy="8" r="0.75" fill="currentColor" />
+        {/* Cabeza */}
+        <circle cx="16" cy="15" r="4.5" strokeLinecap="round" />
+        {/* Bufanda / cuello */}
+        <path d="M10 27c0-3.5 2.5-6 6-6s6 2.5 6 6" strokeLinecap="round" />
+        <path d="M14 21h4v3h-4z" fill="currentColor" fillOpacity={0.15} />
       </svg>
     ),
   },
   {
     id: 'avatar-05',
-    label: 'Ciencia e Investigación',
-    bgColor: '#eef8f8',
-    textColor: '#196b75',
+    label: 'Elena (Matemáticas)',
+    bgColor: '#fce7f3',
+    textColor: '#be185d',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 5H9L8 4z" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Pelo corto asimétrico */}
+        <path d="M11 11c2-3 7-3 10 0v5h-10v-5z" fill="currentColor" fillOpacity={0.15} />
+        <circle cx="16" cy="14.5" r="4.5" strokeLinecap="round" />
+        {/* Gafas cuadradas sutiles */}
+        <rect x="12.5" y="13.5" width="3" height="2" rx="0.5" />
+        <rect x="16.5" y="13.5" width="3" height="2" rx="0.5" />
+        <path d="M15.5 14.5h1" strokeLinecap="round" />
+        {/* Hombros */}
+        <path d="M10 27c0-4 2.5-6.5 6-6.5s6 2.5 6 6.5" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     id: 'avatar-06',
-    label: 'Pluma Académica',
-    bgColor: '#f5f0fa',
-    textColor: '#5e3a87',
+    label: 'Daniel (Derecho)',
+    bgColor: '#e0f2fe',
+    textColor: '#0369a1',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Cabeza y peinado formal */}
+        <circle cx="16" cy="13.5" r="4.5" strokeLinecap="round" />
+        <path d="M12 11c1-2 4-2.5 7-1" strokeLinecap="round" />
+        {/* Cuello camisa y corbata elegante */}
+        <path d="M9 27c0-4 3-6.5 7-6.5s7 2.5 7 6.5" strokeLinecap="round" />
+        <path d="M16 20.5l-1 4.5h2l-1-4.5z" fill="currentColor" />
       </svg>
     ),
   },
   {
     id: 'avatar-07',
-    label: 'Brújula y Enfoque',
-    bgColor: '#f1f5f9',
-    textColor: '#334155',
+    label: 'Isabella (Arquitectura)',
+    bgColor: '#ecfdf5',
+    textColor: '#047857',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <circle cx="12" cy="12" r="9" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" opacity="0.3" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Gorro de taller / diadema */}
+        <path d="M11 12.5a6 6 0 0110 0" strokeLinecap="round" strokeWidth={2.2} />
+        <circle cx="16" cy="15" r="4.5" strokeLinecap="round" />
+        {/* Lápiz tras la oreja */}
+        <path d="M21 11l2-2" strokeLinecap="round" />
+        {/* Hombros */}
+        <path d="M10 27c0-4 2.5-6.5 6-6.5s6 2.5 6 6.5" strokeLinecap="round" />
       </svg>
     ),
   },
   {
     id: 'avatar-08',
-    label: 'Meta y Progreso',
-    bgColor: '#fff8ea',
-    textColor: '#9a6308',
+    label: 'Lucas (Informática)',
+    bgColor: '#ffedd5',
+    textColor: '#c2410c',
     icon: (
-      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      <svg className="w-7 h-7" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.75}>
+        {/* Capucha hoodie */}
+        <path d="M9 27c0-4.5 3-7 7-7s7 2.5 7 7" strokeLinecap="round" />
+        <path d="M10 16a6 6 0 0112 0v4H10v-4z" fill="currentColor" fillOpacity={0.12} />
+        {/* Cabeza */}
+        <circle cx="16" cy="15" r="4" strokeLinecap="round" />
+        <path d="M13 12c1.5-1 4.5-1 6 0" strokeLinecap="round" />
       </svg>
     ),
   },

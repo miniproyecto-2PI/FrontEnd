@@ -29,6 +29,7 @@ export interface UseRegisterFormReturn {
   successUser: UserProfile | null
   usernameStatus: UsernameStatus
   detectedUniversity: string | null
+  step: 1 | 2
   refs: {
     nombres: RefObject<HTMLInputElement | null>
     apellidos: RefObject<HTMLInputElement | null>
@@ -39,6 +40,8 @@ export interface UseRegisterFormReturn {
   }
   handleChange: (field: keyof RegisterFormData, value: string) => void
   handleUsernameBlur: () => Promise<void>
+  handleNextStep: () => Promise<void>
+  handlePrevStep: () => void
   handleSubmit: (e?: FormEvent) => Promise<void>
   handleGoogleSignIn: () => Promise<void>
   handleCancelGoogle: () => void
@@ -69,6 +72,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const [successUser, setSuccessUser] = useState<UserProfile | null>(null)
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [detectedUniversity, setDetectedUniversity] = useState<string | null>(null)
+  const [step, setStep] = useState<1 | 2>(1)
 
   // Focusable Field References
   const nombresRef = useRef<HTMLInputElement>(null)
@@ -273,6 +277,50 @@ export function useRegisterForm(): UseRegisterFormReturn {
     }
   }
 
+  const handleNextStep = async () => {
+    const stepErrors: FormErrors = {}
+    if (!formData.nombres.trim()) stepErrors.nombres = 'Ingresa tus nombres.'
+    if (!formData.apellidos.trim()) stepErrors.apellidos = 'Ingresa tus apellidos.'
+    const userErr = validateUsername(formData.username)
+    if (userErr) stepErrors.username = userErr
+    if (!formData.avatar) stepErrors.avatar = 'Selecciona un avatar.'
+
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...stepErrors }))
+      if (stepErrors.nombres) nombresRef.current?.focus()
+      else if (stepErrors.apellidos) apellidosRef.current?.focus()
+      else if (stepErrors.username) usernameRef.current?.focus()
+      return
+    }
+
+    setUsernameStatus('checking')
+    try {
+      const isFree = await checkUsernameAvailability(formData.username)
+      if (!isFree) {
+        setUsernameStatus('taken')
+        setErrors((prev) => ({
+          ...prev,
+          username: 'Este nombre de usuario ya está en uso, prueba con otro.',
+        }))
+        usernameRef.current?.focus()
+        return
+      }
+      setUsernameStatus('available')
+      setErrors({})
+      setGeneralAlert(null)
+      setStep(2)
+      setTimeout(() => emailRef.current?.focus(), 50)
+    } catch {
+      setUsernameStatus('idle')
+      setStep(2)
+    }
+  }
+
+  const handlePrevStep = () => {
+    setStep(1)
+    setGeneralAlert(null)
+  }
+
   return {
     formData,
     errors,
@@ -282,6 +330,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     successUser,
     usernameStatus,
     detectedUniversity,
+    step,
     refs: {
       nombres: nombresRef,
       apellidos: apellidosRef,
@@ -292,6 +341,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
     },
     handleChange,
     handleUsernameBlur,
+    handleNextStep,
+    handlePrevStep,
     handleSubmit,
     handleGoogleSignIn,
     handleCancelGoogle,
