@@ -39,6 +39,7 @@ export interface UseLoginFormReturn {
   handleGoogleSignIn: () => Promise<void>
   handleCancelGoogle: () => void
   handleUnlock: () => void
+  handleSwitchAccount: () => void
   setGeneralAlert: React.Dispatch<
     React.SetStateAction<{
       variant: 'error' | 'warning' | 'info' | 'success'
@@ -70,6 +71,7 @@ export function useLoginForm(): UseLoginFormReturn {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleConnecting, setIsGoogleConnecting] = useState(false)
+  const [isSwitchingAccount, setIsSwitchingAccount] = useState(false)
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(() => {
     const failed = getFailedAttempts()
     return failed.lockoutUntil && Date.now() < failed.lockoutUntil ? failed.lockoutUntil : null
@@ -90,6 +92,14 @@ export function useLoginForm(): UseLoginFormReturn {
       }
     }
   }, [isAuthenticated, profileComplete, navigate])
+
+  // Desbloqueo rápido mediante parámetro de URL (?reset=true o ?unlock=true) para pruebas
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (params.get('reset') === 'true' || params.get('unlock') === 'true') {
+      handleUnlock()
+    }
+  }, [location.search])
 
   const handleChange = (field: keyof LoginFormState, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -159,6 +169,7 @@ export function useLoginForm(): UseLoginFormReturn {
       if (err instanceof AuthError) {
         if (err.code === 'TOO_MANY_ATTEMPTS') {
           const failed = getFailedAttempts()
+          setIsSwitchingAccount(false)
           setLockoutUntil(failed.lockoutUntil || Date.now() + 15 * 60 * 1000)
           setGeneralAlert({
             variant: 'error',
@@ -243,8 +254,16 @@ export function useLoginForm(): UseLoginFormReturn {
 
   const handleUnlock = () => {
     resetFailedAttempts()
+    setIsSwitchingAccount(false)
     setLockoutUntil(null)
     setGeneralAlert(null)
+  }
+
+  const handleSwitchAccount = () => {
+    setFormData({ email: '', password: '', rememberMe: true })
+    setErrors({})
+    setGeneralAlert(null)
+    setIsSwitchingAccount(true)
   }
 
   return {
@@ -253,13 +272,14 @@ export function useLoginForm(): UseLoginFormReturn {
     generalAlert,
     isLoading,
     isGoogleConnecting,
-    lockoutUntil,
+    lockoutUntil: isSwitchingAccount ? null : lockoutUntil,
     refs,
     handleChange,
     handleSubmit,
     handleGoogleSignIn,
     handleCancelGoogle,
     handleUnlock,
+    handleSwitchAccount,
     setGeneralAlert,
   }
 }

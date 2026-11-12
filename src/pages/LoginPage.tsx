@@ -39,10 +39,10 @@ export function LoginPage() {
       className="min-h-[calc(100vh-140px)] bg-[#f5faff] py-8 sm:py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-all duration-500"
     >
       <div
-        className={`w-full max-w-5xl transition-all duration-500 ease-out ${
+        className={`w-full max-w-6xl transition-all duration-500 ease-out ${
           isCentering
             ? 'flex justify-center items-center'
-            : 'grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center'
+            : 'grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center'
         }`}
       >
         {/* COLUMNA IZQUIERDA: FORMULARIO DE ACCESO (SE DESLIZA HACIA EL CENTRO SUAVEMENTE) */}
@@ -50,7 +50,7 @@ export function LoginPage() {
           className={`w-full transition-all duration-500 ease-out flex justify-center ${
             isCentering
               ? 'max-w-[460px] mx-auto'
-              : 'lg:col-span-6'
+              : 'lg:col-span-5'
           }`}
         >
           {form.isGoogleConnecting ? (
@@ -64,6 +64,7 @@ export function LoginPage() {
                 email={form.formData.email}
                 onUnlock={form.handleUnlock}
                 onRecoverPassword={handleForgotPassword}
+                onSwitchAccount={form.handleSwitchAccount}
               />
             </div>
           ) : (
@@ -77,12 +78,12 @@ export function LoginPage() {
           )}
         </div>
 
-        {/* COLUMNA DERECHA: ESCENA ESTILO NOTION QUE SE DESVANECE SUAVEMENTE */}
+        {/* COLUMNA DERECHA: ESCENA ESTILO NOTION INTEGRADA CON EL FONDO */}
         <div
           className={`hidden lg:block transition-all duration-500 ease-out ${
             isCentering
               ? 'lg:col-span-0 w-0 opacity-0 translate-x-12 scale-95 pointer-events-none overflow-hidden m-0 p-0'
-              : 'lg:col-span-6 w-full opacity-100 translate-x-0 scale-100'
+              : 'lg:col-span-7 w-full opacity-100 translate-x-0 scale-100'
           }`}
         >
           <NotionStudyScene isFadingOut={isCentering} />
