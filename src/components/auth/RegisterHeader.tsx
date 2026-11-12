@@ -10,11 +10,15 @@ export function RegisterHeader({ isLoading, step, onGoogleClick }: RegisterHeade
   const strokeDashoffset = step === 1 ? circumference * 0.5 : 0
 
   return (
-    <div className="flex flex-col items-center text-center pb-5 border-b border-[#edf2f7]">
-      {/* RUEDITA DE PROGRESO "1 DE 2" / "2 DE 2" */}
-      <div className="flex items-center gap-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-full px-4 py-1.5 mb-3.5 shadow-2xs">
-        <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-          <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32">
+    <div className="relative flex flex-col items-center text-center pb-5 border-b border-[#edf2f7]">
+      {/* RUEDITA DE PROGRESO "1/2" MINIMALISTA SIN FONDO ARRIBA A LA DERECHA */}
+      <div
+        className="absolute top-0 right-0 sm:top-0.5 sm:right-0.5 flex items-center justify-center"
+        aria-label={`Paso ${step} de 2`}
+        title={`Paso ${step} de 2`}
+      >
+        <div className="relative w-8 h-8 flex items-center justify-center">
+          <svg className="w-8 h-8 -rotate-90" viewBox="0 0 32 32" aria-hidden="true">
             {/* Círculo base */}
             <circle
               cx="16"
@@ -38,17 +42,9 @@ export function RegisterHeader({ isLoading, step, onGoogleClick }: RegisterHeade
               className="transition-all duration-300 ease-out"
             />
           </svg>
-          <span className="absolute font-mono text-[10px] font-bold text-[#1f4e79]">
+          <span className="absolute font-mono text-[11px] font-bold text-[#1f4e79]">
             {step}/2
           </span>
-        </div>
-        <div className="text-left">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#1f4e79] leading-tight">
-            Paso {step} de 2
-          </p>
-          <p className="text-[11px] text-[#617487] leading-tight">
-            {step === 1 ? 'Identidad y avatar' : 'Credenciales de acceso'}
-          </p>
         </div>
       </div>
 
