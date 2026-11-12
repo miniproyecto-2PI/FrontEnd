@@ -22,7 +22,7 @@ export function Footer() {
         </nav>
 
         <span className="copyright">
-          © 2025 Estudiemos. Plataforma académica colaborativa. Todos los derechos reservados.
+          © 2026 Estudiemos. Plataforma académica colaborativa. Todos los derechos reservados.
         </span>
       </div>
     </footer>
