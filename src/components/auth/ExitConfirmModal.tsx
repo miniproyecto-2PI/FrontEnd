@@ -36,3 +36,4 @@ export function ExitConfirmModal({ isOpen, onClose, onConfirmExit }: ExitConfirm
     </Modal>
   )
 }
+

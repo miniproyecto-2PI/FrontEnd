@@ -77,3 +77,4 @@ export function UsernameSuccessCard({ user, onContinue }: UsernameSuccessCardPro
     </section>
   )
 }
+

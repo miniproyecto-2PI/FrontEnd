@@ -70,3 +70,4 @@ export function GoogleConnectingView({ onCancel }: GoogleConnectingViewProps) {
     </section>
   )
 }
+
