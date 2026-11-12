@@ -8,3 +8,59 @@
 /* Keep the keyboard focus indicator above the 3:1 contrast target on light surfaces. */
 :focus-visible{outline-color:#1f4e79}
 .not-found-card{text-align:center;padding:54px 42px}.not-found-code{margin:0 0 18px;color:#dceaf7;font:800 clamp(96px,22vw,168px)/.82 'Plus Jakarta Sans',sans-serif;letter-spacing:-.09em}.not-found-card h1{margin:16px 0 10px}.not-found-card>p:not(.not-found-code){max-width:440px;margin:0 auto;color:var(--muted);line-height:1.7}.not-found-actions{justify-content:center}.not-found-actions .button-outline{color:var(--blue)}
+
+/* Animación sutil flotante para ilustración 3D / Notion */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+@keyframes floatDelayed {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float-delayed {
+  animation: floatDelayed 5.5s ease-in-out infinite 1.2s;
+}
+
+@keyframes floatBob {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1deg);
+  }
+}
+
+.animate-float-bob {
+  animation: floatBob 4.8s ease-in-out infinite 0.5s;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.08);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 5s ease-in-out infinite;
+}
+

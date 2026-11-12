@@ -5,7 +5,7 @@ import { GoogleConnectingView } from '../components/auth/GoogleConnectingView'
 import { RateLimitAlert } from '../components/auth/RateLimitAlert'
 import { Modal } from '../components/ui/Modal'
 import { Button } from '../components/ui/Button'
-import { PRESET_AVATARS } from '../constants/avatars'
+import { NotionStudyScene } from '../components/auth/NotionStudyScene'
 
 export function LoginPage() {
   const form = useLoginForm()
@@ -45,91 +45,8 @@ export function LoginPage() {
           )}
         </div>
 
-        {/* COLUMNA DERECHA: PANEL LATERAL REACTIVO CON AMBIENTE DE SALAS (DESKTOP) */}
-        <div className="hidden lg:flex lg:col-span-6 flex-col justify-between p-8 sm:p-10 rounded-3xl bg-linear-to-br from-[#102c40] via-[#163a5a] to-[#1f4e79] text-white shadow-xl relative overflow-hidden min-h-[560px]">
-          {/* SUTILES ELEMENTOS GEOMÉTRICOS DE FONDO */}
-          <div
-            className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5 blur-2xl pointer-events-none"
-            aria-hidden="true"
-          />
-          <div
-            className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-cyan-400/5 blur-2xl pointer-events-none"
-            aria-hidden="true"
-          />
-
-          {/* TOP TAG & ESTADO EN VIVO */}
-          <div className="relative z-10 flex items-center justify-between">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold backdrop-blur-xs border border-white/15">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
-              Red Universitaria Activa
-            </span>
-            <span className="text-xs text-white/70 font-mono">
-              128 estudiantes en vivo
-            </span>
-          </div>
-
-          {/* TARJETA INTERACTIVA DE PREVISUALIZACIÓN DE SALA EN TIEMPO REAL */}
-          <div className="relative z-10 my-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 flex flex-col gap-4 shadow-lg hover:border-white/30 transition-all">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-mono tracking-wider uppercase text-cyan-200 font-semibold">
-                  Sala de concentración #04
-                </span>
-                <h3 className="text-base font-bold text-white mt-0.5">
-                  Cálculo Vectorial & Ecuaciones
-                </h3>
-              </div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 text-[11px] font-medium shrink-0">
-                ● En sesión
-              </span>
-            </div>
-
-            {/* AVATARES DE ESTUDIANTES ACTIVOS EN LA SALA */}
-            <div className="flex items-center justify-between pt-2 border-t border-white/10">
-              <div className="flex items-center -space-x-2 overflow-hidden">
-                {PRESET_AVATARS.slice(0, 4).map((av) => (
-                  <div
-                    key={av.id}
-                    title={av.label}
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-[#163a5a] flex items-center justify-center text-xs shadow-xs"
-                    style={{ backgroundColor: av.bgColor, color: av.textColor }}
-                  >
-                    {av.icon}
-                  </div>
-                ))}
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-[11px] font-bold text-white ring-2 ring-[#163a5a]">
-                  +3
-                </span>
-              </div>
-
-              {/* TEMPORIZADOR POMODORO EN VIVO */}
-              <div className="flex items-center gap-2 bg-black/20 rounded-lg px-2.5 py-1 text-xs font-mono text-cyan-100 border border-white/10">
-                <svg className="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <circle cx="12" cy="12" r="10" />
-                  <path strokeLinecap="round" d="M12 6v6l4 2" />
-                </svg>
-                <span>24:15 min</span>
-              </div>
-            </div>
-
-            {/* CHIPS DE MATERIAS & APUNTES */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-white/80">
-              <span className="px-2 py-0.5 rounded bg-white/10 border border-white/10">#integrales-dobles</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 border border-white/10">#teorema-de-green</span>
-              <span className="text-white/50 text-[10px] ml-auto">Pizarra sincronizada</span>
-            </div>
-          </div>
-
-          {/* CITA ACADÉMICA / DECLARACIÓN DE PROPÓSITO */}
-          <div className="relative z-10 pt-4 border-t border-white/15">
-            <p className="text-xs sm:text-sm text-white/90 italic leading-relaxed">
-              «El estudio colaborativo transforma la complejidad de las materias en entendimiento compartido y proyectos concluidos.»
-            </p>
-            <p className="text-[11px] font-semibold text-cyan-200 mt-2">
-              Plataforma académica diseñada para estudiantes universitarios
-            </p>
-          </div>
-        </div>
+        {/* COLUMNA DERECHA: ESCENA DE ESTUDIO ESTILO NOTION (DESKTOP) */}
+        <NotionStudyScene />
       </div>
 
       {/* MODAL RECUPERAR CONTRASEÑA */}
