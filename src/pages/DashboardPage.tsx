@@ -53,8 +53,8 @@ export function DashboardPage() {
 
   const handleLogout = () => {
     logout()
-    // Criterio S1-C04: "Cerrar sesión lleva al inicio"
-    navigate('/')
+    // Criterio US-03: Cierre de sesión me lleva al login y no permite volver con atrás
+    navigate('/ingresar', { replace: true })
   }
 
   return (
@@ -64,15 +64,19 @@ export function DashboardPage() {
         <header className="bg-white border border-[#dfe9f1] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center shrink-0 border border-slate-200 shadow-xs"
+              className="w-16 h-16 rounded-full flex items-center justify-center shrink-0 border border-slate-200 shadow-xs overflow-hidden"
               style={{ backgroundColor: avatar.bgColor, color: avatar.textColor }}
             >
-              {avatar.icon}
+              {user.avatarUrl?.startsWith('http') || user.avatarUrl?.startsWith('data:') ? (
+                <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                avatar.icon
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold text-[#102c40]">
-                  {user.nombres} {user.apellidos}
+                  {user.firstName || user.nombres} {user.lastName || user.apellidos}
                 </h1>
                 <Badge variant="success" dot>
                   Cuenta activa
