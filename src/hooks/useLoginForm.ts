@@ -182,11 +182,8 @@ export function useLoginForm(): UseLoginFormReturn {
         if (err.code === 'INVALID_CREDENTIALS') {
           setGeneralAlert({
             variant: 'error',
-            title: 'Credenciales incorrectas',
-            message: 'Correo o contraseña incorrectos',
+            message: 'El correo o la contraseña no coinciden. Revisá ambos datos e intentá de nuevo.',
           })
-          setErrors({ password: 'Dato incorrecto' })
-          refs.password.current?.focus()
           return
         }
 

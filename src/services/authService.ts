@@ -9,6 +9,7 @@ import type {
   UserProfile,
 } from '../types/auth'
 import { PRESET_AVATARS } from '../constants/avatars'
+import { parsePasswordLoginResponse } from './passwordLoginResponse'
 
 // Registros preexistentes para pruebas de unicidad y simulación offline
 const INITIAL_USERS: Array<{ username: string; email: string; name: string; password?: string }> = [
@@ -445,30 +446,16 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
     })
 
     if (loginResponse.ok) {
-      const resJson = (await loginResponse.json()) as {
-        success?: boolean
-        message?: string
-        data?: { user?: UserProfile; token?: string } | UserProfile
-        token?: string
+      const body: unknown = await loginResponse.json().catch(() => null)
+      const result = parsePasswordLoginResponse(body)
+      if (!result) {
+        throw new AuthError('No pudimos obtener tu perfil del servidor. Intenta de nuevo.', 'UNKNOWN')
       }
-      const dataObj = resJson.data || {}
-      const profile = ('user' in dataObj && dataObj.user ? dataObj.user : dataObj) as UserProfile
-      const token = ('token' in dataObj && dataObj.token ? dataObj.token : resJson.token) || `token_${Date.now()}`
 
-      localStorage.setItem(STORAGE_TOKEN_KEY, token)
+      localStorage.setItem(STORAGE_TOKEN_KEY, result.token)
       resetFailedAttempts()
 
-      return {
-        user: {
-          ...profile,
-          id: profile.uid || profile.id,
-          nombres: profile.firstName || profile.nombres,
-          apellidos: profile.lastName || profile.apellidos,
-          avatarUrl: profile.avatar || profile.avatarUrl || 'avatar-01',
-        },
-        token,
-        message: resJson.message || '¡Bienvenido de nuevo!',
-      }
+      return result
     }
 
     if (loginResponse.status === 401 || loginResponse.status === 400) {
