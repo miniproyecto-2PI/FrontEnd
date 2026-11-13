@@ -63,23 +63,38 @@ export function resetFailedAttempts(): void {
   localStorage.removeItem(STORAGE_FAILED_ATTEMPTS_KEY)
 }
 
-function getStoredUsers(): Array<{ username: string; email: string; name: string; password?: string }> {
+interface StoredUser {
+  username: string
+  email: string
+  name: string
+  password?: string
+  avatar?: string
+}
+
+function getStoredUsers(): StoredUser[] {
   try {
     const raw = localStorage.getItem(STORAGE_USERS_KEY)
     if (!raw) {
       localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(INITIAL_USERS))
       return INITIAL_USERS
     }
-    return JSON.parse(raw) as Array<{ username: string; email: string; name: string; password?: string }>
+    return JSON.parse(raw) as StoredUser[]
   } catch {
     return INITIAL_USERS
   }
 }
 
-function saveStoredUser(user: { username: string; email: string; name: string; password?: string }) {
+function saveStoredUser(user: StoredUser) {
   try {
     const users = getStoredUsers()
-    users.push(user)
+    const index = users.findIndex(
+      (u) => u.email.toLowerCase() === user.email.toLowerCase() || u.username.toLowerCase() === user.username.toLowerCase()
+    )
+    if (index >= 0) {
+      users[index] = { ...users[index], ...user }
+    } else {
+      users.push(user)
+    }
     localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users))
   } catch {
     // Ignore storage quota
@@ -285,7 +300,9 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
         throw new AuthError(String(errObj.message || 'Datos de registro inválidos.'), 'VALIDATION_ERROR')
       }
 
-      if (response.status !== 404) {
+      if (response.status === 503) {
+        console.warn('[Register] Backend responde 503 (posiblemente Firebase Auth no inicializado en consola). Usando persistencia local de respaldo...')
+      } else if (response.status !== 404) {
         throw new AuthError(`Error de autenticación con el servidor (${response.status}).`, 'NETWORK_ERROR')
       }
     }
@@ -309,6 +326,15 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
         if (formData.customAvatarPreview) finalAvatar = formData.customAvatarPreview
       }
     }
+
+    // Guardar también en almacenamiento local para inicio de sesión inmediato
+    saveStoredUser({
+      username: backendPayload.username,
+      email: backendPayload.email,
+      name: `${backendPayload.firstName} ${backendPayload.lastName}`,
+      password: backendPayload.password,
+      avatar: finalAvatar,
+    })
 
     return {
       user: {
@@ -338,12 +364,6 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
     throw new AuthError('Este correo ya tiene una cuenta. ¿Quieres iniciar sesión?', 'EMAIL_ALREADY_IN_USE', 'email')
   }
 
-  saveStoredUser({
-    username: backendPayload.username,
-    email: backendPayload.email,
-    name: `${backendPayload.firstName} ${backendPayload.lastName}`,
-  })
-
   const avatarMatch = PRESET_AVATARS.find((a) => a.id === backendPayload.avatar)
   let customAvatarFinal = avatarMatch?.id || 'avatar-01'
 
@@ -357,6 +377,14 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
   } else if (formData.customAvatarPreview) {
     customAvatarFinal = formData.customAvatarPreview
   }
+
+  saveStoredUser({
+    username: backendPayload.username,
+    email: backendPayload.email,
+    name: `${backendPayload.firstName} ${backendPayload.lastName}`,
+    password: backendPayload.password,
+    avatar: customAvatarFinal,
+  })
 
   const created: UserProfile = {
     uid: `usr_${Date.now()}`,
@@ -494,8 +522,8 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
     apellidos: lastName,
     username: matched.username,
     email: matched.email,
-    avatar: 'avatar-01',
-    avatarUrl: 'avatar-01',
+    avatar: matched.avatar || 'avatar-01',
+    avatarUrl: matched.avatar || 'avatar-01',
     provider: 'password',
     profileComplete: true,
     createdAt: new Date().toISOString(),
@@ -524,35 +552,80 @@ export async function signInWithGoogleService(): Promise<GoogleAuthResult> {
       localStorage.setItem(STORAGE_TOKEN_KEY, idToken)
 
       // Consultar GET /api/users/me en el backend
-      const meResponse = await fetch(`${baseUrl}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          Accept: 'application/json',
-        },
-      })
-
-      if (meResponse.ok) {
-        const json = (await meResponse.json()) as { data: UserProfile; message?: string }
-        const profile = json.data
-        return {
-          user: {
-            ...profile,
-            id: profile.uid,
-            nombres: profile.firstName,
-            apellidos: profile.lastName,
-            avatarUrl: profile.avatar || 'avatar-01',
+      try {
+        const meResponse = await fetch(`${baseUrl}/api/users/me`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            Accept: 'application/json',
           },
-          isNewUser: !profile.profileComplete,
-          token: idToken,
-          message: json.message,
+        })
+
+        if (meResponse.ok) {
+          const json = (await meResponse.json()) as { data: UserProfile; message?: string }
+          const profile = json.data
+          return {
+            user: {
+              ...profile,
+              id: profile.uid,
+              nombres: profile.firstName,
+              apellidos: profile.lastName,
+              avatarUrl: profile.avatar || cred.user.photoURL || 'avatar-01',
+            },
+            isNewUser: !profile.profileComplete,
+            token: idToken,
+            message: json.message,
+          }
         }
+      } catch (apiErr) {
+        console.warn('[Google Auth] Backend no disponible para /api/users/me:', apiErr)
+      }
+
+      // Si el backend aún no responde, construir perfil inicial desde la cuenta de Google autenticada
+      const displayName = cred.user.displayName || 'Estudiante Google'
+      const names = displayName.split(' ')
+      const firstName = names[0] || 'Estudiante'
+      const lastName = names.slice(1).join(' ') || ''
+      const googleProfile: UserProfile = {
+        uid: cred.user.uid,
+        id: cred.user.uid,
+        email: cred.user.email || '',
+        firstName,
+        lastName,
+        nombres: firstName,
+        apellidos: lastName,
+        username: null,
+        avatarUrl: cred.user.photoURL || 'avatar-01',
+        avatar: cred.user.photoURL || 'avatar-01',
+        provider: 'google',
+        profileComplete: false,
+        createdAt: new Date().toISOString(),
+      }
+
+      return {
+        user: googleProfile,
+        isNewUser: true,
+        token: idToken,
+        message: 'Por favor, elige tu nombre de usuario para completar tu registro.',
       }
     } catch (err: unknown) {
       const errorObj = err as { code?: string; message?: string }
       if (errorObj?.code === 'auth/popup-closed-by-user' || errorObj?.code === 'auth/cancelled-popup-request') {
-        throw new AuthError('No pudimos conectar con Google. Intenta de nuevo', 'NETWORK_ERROR')
+        throw new AuthError('No pudimos conectar con Google. Se cerró la ventana emergente.', 'NETWORK_ERROR')
       }
-      // Si falla la conexión remota con Firebase, permitir fallback de simulación académica
+      if (errorObj?.code === 'auth/configuration-not-found' || errorObj?.code === 'auth/operation-not-allowed') {
+        throw new AuthError(
+          'El proveedor de Google no está activado en Firebase Authentication. Habilítalo en la consola de Firebase.',
+          'NETWORK_ERROR'
+        )
+      }
+      if (errorObj?.code === 'auth/unauthorized-domain') {
+        throw new AuthError(
+          'Este dominio no está autorizado en Firebase Authentication. Agrega el dominio en la consola de Firebase.',
+          'NETWORK_ERROR'
+        )
+      }
+      console.warn('[Google Auth] Error en popup nativo:', err)
+      // Si falla por otra causa en entorno local sin red, permitir fallback
     }
   }
 
