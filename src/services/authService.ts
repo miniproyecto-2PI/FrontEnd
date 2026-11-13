@@ -433,7 +433,63 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
     }
   }
 
-  // 2. Si Firebase Client Auth está configurado con credenciales válidas
+  // 2. Intentar autenticación centralizada en el Backend (POST /api/auth/login)
+  try {
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ email: cleanEmail, password }),
+    })
+
+    if (loginResponse.ok) {
+      const resJson = (await loginResponse.json()) as {
+        success?: boolean
+        message?: string
+        data?: { user?: UserProfile; token?: string } | UserProfile
+        token?: string
+      }
+      const dataObj = resJson.data || {}
+      const profile = ('user' in dataObj && dataObj.user ? dataObj.user : dataObj) as UserProfile
+      const token = ('token' in dataObj && dataObj.token ? dataObj.token : resJson.token) || `token_${Date.now()}`
+
+      localStorage.setItem(STORAGE_TOKEN_KEY, token)
+      resetFailedAttempts()
+
+      return {
+        user: {
+          ...profile,
+          id: profile.uid || profile.id,
+          nombres: profile.firstName || profile.nombres,
+          apellidos: profile.lastName || profile.apellidos,
+          avatarUrl: profile.avatar || profile.avatarUrl || 'avatar-01',
+        },
+        token,
+        message: resJson.message || '¡Bienvenido de nuevo!',
+      }
+    }
+
+    if (loginResponse.status === 401 || loginResponse.status === 400) {
+      const errJson = (await loginResponse.json().catch(() => ({}))) as Record<string, unknown>
+      const errObj = (errJson.error || errJson) as Record<string, unknown>
+      registerFailedAttempt(cleanEmail)
+      throw new AuthError(
+        typeof errObj.message === 'string' ? errObj.message : 'Correo o contraseña incorrectos',
+        'INVALID_CREDENTIALS'
+      )
+    }
+
+    if (loginResponse.status === 429) {
+      throw new AuthError('Demasiados intentos. Espera un momento e intenta de nuevo', 'TOO_MANY_ATTEMPTS')
+    }
+  } catch (apiErr) {
+    if (apiErr instanceof AuthError) throw apiErr
+    // Si el endpoint aún no está implementado (404) o no hay red, usar respaldo local
+  }
+
+  // 3. Si Firebase Client Auth está configurado opcionalmente
   if (isFirebaseConfigured && auth) {
     try {
       const cred = await signInWithEmailAndPassword(auth, cleanEmail, password)
