@@ -156,8 +156,8 @@ export function AvatarSelector({
       />
 
       {isCustomSelected && customPreview ? (
-        <div className="flex items-center justify-between gap-3 p-3 bg-blue-50/60 border border-[#b9d5ec] rounded-xl animate-in fade-in duration-200">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-blue-50/60 border border-[#b9d5ec] rounded-xl animate-in fade-in duration-200">
+          <div className="flex min-w-0 flex-[1_1_12rem] items-center gap-3">
             <div className="relative w-11 h-11 shrink-0">
               <img
                 src={customPreview}
@@ -172,7 +172,7 @@ export function AvatarSelector({
               </span>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-[#102c40] truncate">
+              <span className="text-xs font-bold text-[#102c40]">
                 Foto personalizada seleccionada
               </span>
               <span className="text-[11px] text-[#475569]">
@@ -181,7 +181,7 @@ export function AvatarSelector({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => {

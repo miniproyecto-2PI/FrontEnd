@@ -5,7 +5,6 @@ export interface RateLimitAlertProps {
   lockoutUntil: number
   email?: string
   onUnlock: () => void
-  onRecoverPassword?: () => void
   onSwitchAccount?: () => void
 }
 
@@ -13,7 +12,6 @@ export function RateLimitAlert({
   lockoutUntil,
   email,
   onUnlock,
-  onRecoverPassword,
   onSwitchAccount,
 }: RateLimitAlertProps) {
   const calculateRemaining = () => Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000))
@@ -100,16 +98,6 @@ export function RateLimitAlert({
           </Button>
         )}
 
-        {onRecoverPassword && (
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            onClick={onRecoverPassword}
-          >
-            Recuperar contraseña ahora
-          </Button>
-        )}
       </div>
     </div>
   )

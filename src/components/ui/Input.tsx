@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
   return (
     <div className={`w-full flex flex-col gap-1.5 ${className}`}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <label
           htmlFor={inputId}
           className="text-xs font-semibold tracking-wide text-[#102c40] flex items-center gap-1"
@@ -73,7 +73,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-describedby={describedBy}
           className={`w-full min-h-[48px] px-3.5 py-2.5 text-sm rounded-lg bg-white text-[#102c40] placeholder:text-slate-400 transition-colors border
             ${startIcon ? 'pl-10' : ''}
-            ${isPassword || endIcon || error || success ? 'pr-11' : ''}
+            ${isPassword ? 'password-input pr-14' : endIcon || error || success ? 'pr-11' : ''}
             ${
               error
                 ? 'border-red-500 focus:border-red-600 focus:ring-1 focus:ring-red-500'
@@ -88,13 +88,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {isPassword ? (
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2.5 p-1.5 text-slate-500 hover:text-[#102c40] rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1f4e79]"
+            onClick={() => setShowPassword((visible) => !visible)}
+            disabled={disabled}
+            className="absolute right-1 grid size-11 place-items-center rounded-md text-slate-500 hover:text-[#102c40] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#1f4e79] disabled:opacity-50"
             aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           >
             {showPassword ? (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M6.4 6.4A12 12 0 0 0 2 12s3.6 6 10 6c1.7 0 3.2-.4 4.5-1.1M10 6.2a10 10 0 0 1 2-.2c6.4 0 10 6 10 6a14 14 0 0 1-2.3 2.8" />
               </svg>
             ) : (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
