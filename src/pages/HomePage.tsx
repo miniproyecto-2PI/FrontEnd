@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export const benefits = [
   { icon: '◈', title: 'Salas privadas', text: 'Crea espacios seguros con invitaciones para tu grupo de trabajo, sin interrupciones.' },
@@ -7,6 +8,8 @@ export const benefits = [
 ]
 
 export function HomePage() {
+  const { isAuthenticated, isLoading } = useAuth()
+
   return (
     <main id="main-content">
       <section className="hero">
@@ -19,14 +22,27 @@ export function HomePage() {
             <span>en tiempo real.</span>
           </h1>
           <p>Un lugar tranquilo para reunirte, compartir ideas y avanzar con tus compañeros.</p>
-          <div className="hero-actions">
-            <Link className="button" to="/registro">
-              Registrarse <span aria-hidden="true">→</span>
-            </Link>
-            <Link className="text-link" to="/ingresar">
-              Ya tengo una cuenta
-            </Link>
-          </div>
+          {isLoading ? (
+            <p role="status">Cargando tu sesión...</p>
+          ) : isAuthenticated ? (
+            <>
+              <p>Tu sesión está activa. Ve a tu panel para continuar estudiando con tu grupo.</p>
+              <div className="hero-actions">
+                <Link className="button" to="/panel">
+                  Ir a mi panel <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="hero-actions">
+              <Link className="button" to="/registro">
+                Registrarse <span aria-hidden="true">→</span>
+              </Link>
+              <Link className="text-link" to="/ingresar">
+                Ya tengo una cuenta
+              </Link>
+            </div>
+          )}
           <div className="hero-note">
             <span aria-hidden="true">✓</span> Sin instalaciones pesadas. Empieza cuando quieras.
           </div>
@@ -127,9 +143,11 @@ export function HomePage() {
             con más foco?
           </h2>
           <p>Reúne a tu grupo y conviertan las ideas en resultados.</p>
-          <Link className="font-semibold text-white underline underline-offset-4" to="/registro">
-            Registrarse <span aria-hidden="true">→</span>
-          </Link>
+          {!isLoading && (
+            <Link className="font-semibold text-white underline underline-offset-4" to={isAuthenticated ? '/panel' : '/registro'}>
+              {isAuthenticated ? 'Ir a mi panel' : 'Registrarse'} <span aria-hidden="true">→</span>
+            </Link>
+          )}
         </div>
         <div className="cta-mark" aria-hidden="true">
           ✳
