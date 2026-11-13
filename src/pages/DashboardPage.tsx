@@ -70,7 +70,7 @@ export function DashboardPage({ activeRooms = [] }: DashboardPageProps) {
                 avatar.icon
               )}
             </div>
-            <div>
+            <div className="min-w-0 [overflow-wrap:anywhere]">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold text-[#102c40]">
                   {user.firstName || user.nombres} {user.lastName || user.apellidos}
