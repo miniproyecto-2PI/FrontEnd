@@ -1,6 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { PRESET_AVATARS } from '../components/ui/AvatarSelector'
 
@@ -9,8 +8,7 @@ interface DashboardPageProps {
 }
 
 export function DashboardPage({ activeRooms = [] }: DashboardPageProps) {
-  const navigate = useNavigate()
-  const { user, isAuthenticated, logout, isLoading } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const hasActiveRooms = activeRooms.length > 0
 
   if (isLoading) {
@@ -56,12 +54,6 @@ export function DashboardPage({ activeRooms = [] }: DashboardPageProps) {
 
   const avatar = PRESET_AVATARS.find((a) => a.id === user.avatarUrl) || PRESET_AVATARS[0]
 
-  const handleLogout = () => {
-    logout()
-    // Criterio US-03: Cierre de sesión me lleva al login y no permite volver con atrás
-    navigate('/ingresar', { replace: true })
-  }
-
   return (
     <main id="main-content" className="min-h-[calc(100vh-140px)] bg-[#f5faff] py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto flex flex-col gap-8">
@@ -92,11 +84,6 @@ export function DashboardPage({ activeRooms = [] }: DashboardPageProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 self-start sm:self-center">
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              Cerrar sesión
-            </Button>
-          </div>
         </header>
 
         {/* WORKSPACE & STUDY ROOMS */}

@@ -1,11 +1,9 @@
-import { useNavigate } from 'react-router-dom'
 import { useChooseUsername } from '../hooks/useChooseUsername'
 import { UsernameSelectionForm } from '../components/auth/UsernameSelectionForm'
-import { UsernameSuccessCard } from '../components/auth/UsernameSuccessCard'
+import { RegisterSuccessCard } from '../components/auth/RegisterSuccessCard'
 import { ExitConfirmModal } from '../components/auth/ExitConfirmModal'
 
 export function ChooseUsernamePage() {
-  const navigate = useNavigate()
   const {
     user,
     username,
@@ -32,7 +30,7 @@ export function ChooseUsernamePage() {
       className="min-h-[calc(100vh-140px)] bg-[#f5faff] py-8 px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center"
     >
       {successUser ? (
-        <UsernameSuccessCard user={successUser} onContinue={() => navigate('/panel')} />
+        <RegisterSuccessCard user={successUser} />
       ) : (
         <UsernameSelectionForm
           user={user}
