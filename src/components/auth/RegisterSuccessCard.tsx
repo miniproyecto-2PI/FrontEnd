@@ -58,10 +58,18 @@ export function RegisterSuccessCard({ user, onContinue }: RegisterSuccessCardPro
       {/* Student Identity Card */}
       <div className="mt-6 p-4 sm:p-5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-left flex items-center gap-4">
         <div
-          className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-xs border border-white/60"
+          className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-xs border border-white/60 overflow-hidden"
           style={{ backgroundColor: avatar.bgColor, color: avatar.textColor }}
         >
-          {avatar.icon}
+          {user.avatarUrl?.startsWith('http') || user.avatarUrl?.startsWith('data:') ? (
+            <img
+              src={user.avatarUrl}
+              alt={`Foto de perfil de ${user.nombres}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            avatar.icon
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
