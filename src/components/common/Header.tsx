@@ -57,18 +57,17 @@ export function Header() {
                 {label}
               </NavLink>
             ))}
-          </div>
-
-          <div className="nav-actions">
-            <Link to="/ayuda" className="nav-login hidden sm:flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <NavLink to="/ayuda" className="inline-flex items-center gap-1.5">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               <span>Ayuda</span>
-            </Link>
+            </NavLink>
+          </div>
 
+          <div className="nav-actions">
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 <Link
@@ -101,11 +100,13 @@ export function Header() {
             ) : (
               <>
                 <Link className="nav-login" to="/ingresar">
-                  Ingresar
+                  Iniciar sesión
                 </Link>
-                <Link className={location.pathname === '/' ? 'nav-login' : 'button button-small'} to="/registro">
-                  Registrarse
-                </Link>
+                {location.pathname.replace(/\/+$/, '') !== '/registro' && (
+                  <Link className="nav-register" to="/registro">
+                    Registrarse
+                  </Link>
+                )}
               </>
             )}
           </div>
