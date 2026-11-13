@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { PRESET_AVATARS, type PresetAvatar } from '../../constants/avatars'
+import { ImageCropModal } from './ImageCropModal'
 
 export { PRESET_AVATARS, type PresetAvatar }
 
@@ -22,6 +23,8 @@ export function AvatarSelector({
 }: AvatarSelectorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [fileToCrop, setFileToCrop] = useState<string | null>(null)
+  const [isCropOpen, setIsCropOpen] = useState(false)
 
   const isCustomSelected =
     Boolean(customPreview) &&
@@ -37,7 +40,7 @@ export function AvatarSelector({
 
     setFileError(null)
 
-    // Validar tipo de imagen (JPG, PNG, WebP alineado con Cloudinary / uploadAvatar middleware)
+    // Validar tipo de imagen (JPG, PNG, WebP)
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     if (!allowedTypes.includes(file.type)) {
       setFileError('Formato no permitido. Usa una imagen JPG, PNG o WebP.')
@@ -53,9 +56,26 @@ export function AvatarSelector({
       return
     }
 
-    const previewUrl = URL.createObjectURL(file)
-    onCustomFileSelect?.(file, previewUrl)
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setFileToCrop(reader.result)
+        setIsCropOpen(true)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCropComplete = (croppedFile: File, previewUrl: string) => {
+    onCustomFileSelect?.(croppedFile, previewUrl)
     onSelect('custom')
+    setIsCropOpen(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleCropCancel = () => {
+    setIsCropOpen(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleRemoveCustom = () => {
@@ -74,7 +94,7 @@ export function AvatarSelector({
           Foto de perfil o avatar <span className="text-red-600 font-bold" aria-hidden="true">*</span>
         </label>
         <span className="text-[11px] text-slate-500 font-medium">
-          {isCustomSelected ? 'Foto personalizada (Cloudinary)' : selectedAvatar?.label}
+          {isCustomSelected ? 'Foto personalizada' : selectedAvatar?.label}
         </span>
       </div>
 
@@ -124,7 +144,7 @@ export function AvatarSelector({
         })}
       </div>
 
-      {/* SECCIÓN DE SUBIDA DE IMAGEN PERSONALIZADA (CLOUDINARY) */}
+      {/* SECCIÓN DE SUBIDA DE IMAGEN PERSONALIZADA */}
       <input
         type="file"
         ref={fileInputRef}
@@ -156,7 +176,7 @@ export function AvatarSelector({
                 Foto personalizada seleccionada
               </span>
               <span className="text-[11px] text-[#475569]">
-                Se subirá a Cloudinary al registrar la cuenta
+                Se guardará como tu foto de perfil
               </span>
             </div>
           </div>
@@ -164,15 +184,27 @@ export function AvatarSelector({
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
+              onClick={() => {
+                if (customPreview) {
+                  setFileToCrop(customPreview)
+                  setIsCropOpen(true)
+                }
+              }}
+              className="px-2.5 py-1 text-xs font-semibold text-[#1f4e79] bg-white border border-[#b9d5ec] rounded-lg hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+            >
+              Recortar
+            </button>
+            <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1 text-xs font-semibold text-[#1f4e79] bg-white border border-[#b9d5ec] rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+              className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-[#cbd5e1] rounded-lg hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
             >
               Cambiar
             </button>
             <button
               type="button"
               onClick={handleRemoveCustom}
-              className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              className="px-2 py-1 text-xs font-medium text-slate-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
               title="Quitar foto y usar avatar predeterminado"
             >
               Quitar
@@ -205,6 +237,14 @@ export function AvatarSelector({
           </button>
         </div>
       )}
+
+      {/* MODAL PARA RECORTAR FOTO */}
+      <ImageCropModal
+        isOpen={isCropOpen}
+        imageSrc={fileToCrop}
+        onCropComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+      />
 
       {activeError && (
         <p role="alert" className="text-xs font-medium text-red-700 flex items-center gap-1.5 px-1">
