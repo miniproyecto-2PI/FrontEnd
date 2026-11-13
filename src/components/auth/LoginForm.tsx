@@ -6,11 +6,10 @@ import type { UseLoginFormReturn } from '../../hooks/useLoginForm'
 
 export interface LoginFormProps {
   form: UseLoginFormReturn
-  onForgotPassword?: () => void
   onNavigateRegister?: () => void
 }
 
-export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginFormProps) {
+export function LoginForm({ form, onNavigateRegister }: LoginFormProps) {
   const {
     formData,
     errors,
@@ -126,15 +125,6 @@ export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginF
             disabled={isLoading}
             required
             isPassword
-            badge={
-              <button
-                type="button"
-                onClick={onForgotPassword}
-                className="text-[11px] font-semibold text-[#1f4e79] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1f4e79] rounded"
-              >
-                ¿Olvidaste tu contraseña?
-              </button>
-            }
           />
 
           {/* REMEMBER ME CHECKBOX */}
