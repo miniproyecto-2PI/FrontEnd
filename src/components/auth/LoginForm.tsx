@@ -24,23 +24,6 @@ export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginF
 
   return (
     <div className="w-full max-w-[460px] flex flex-col gap-4">
-      {/* GENERAL ALERT BANNER */}
-      {generalAlert && (
-        <Alert
-          variant={generalAlert.variant}
-          title={generalAlert.title}
-          action={
-            generalAlert.action === 'retry' ? (
-              <Button variant="outline" size="sm" onClick={() => void handleSubmit()}>
-                Reintentar
-              </Button>
-            ) : undefined
-          }
-        >
-          {generalAlert.message}
-        </Alert>
-      )}
-
       <div className="bg-white border border-[#dfe9f1] rounded-2xl shadow-sm p-6 sm:p-9 transition-all">
         {/* CARD HEADER (Sin icono genérico de LucidChart) */}
         <div className="text-left mb-6">
@@ -97,6 +80,22 @@ export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginF
 
         {/* FORM */}
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+          {generalAlert && (
+            <Alert variant={generalAlert.variant} title={generalAlert.title}>
+              {generalAlert.message}
+              {generalAlert.action === 'retry' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => void handleSubmit()}
+                >
+                  Reintentar
+                </Button>
+              )}
+            </Alert>
+          )}
           {/* EMAIL */}
           <Input
             ref={refs.email}
