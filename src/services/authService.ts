@@ -10,6 +10,7 @@ import type {
 } from '../types/auth'
 import { PRESET_AVATARS } from '../constants/avatars'
 import { parsePasswordLoginResponse } from './passwordLoginResponse'
+import { persistRegisteredAvatar } from './registeredAvatar'
 
 // Registros preexistentes para pruebas de unicidad y simulación offline
 const INITIAL_USERS: Array<{ username: string; email: string; name: string; password?: string }> = [
@@ -179,10 +180,7 @@ export async function generateUsernameSuggestions(name: string, email: string): 
  * POST /api/users/me/avatar (multipart/form-data con campo 'avatar')
  * Cumple con las especificaciones del backend (JPG, PNG o WebP, máx. 2 MB).
  */
-export async function uploadAvatarService(
-  file: File,
-  token?: string
-): Promise<{ avatarUrl: string; user?: UserProfile }> {
+async function uploadAvatarService(file: File, token: string): Promise<string> {
   const maxBytes = 2 * 1024 * 1024 // 2 MB
   if (file.size > maxBytes) {
     throw new AuthError('La imagen debe pesar máximo 2 MB.', 'VALIDATION_ERROR', 'avatar')
@@ -193,53 +191,23 @@ export async function uploadAvatarService(
     throw new AuthError('Formato no permitido. Usa una imagen JPG, PNG o WebP.', 'VALIDATION_ERROR', 'avatar')
   }
 
-  const baseUrl = getApiBaseUrl()
-  const authToken = token || localStorage.getItem(STORAGE_TOKEN_KEY)
+  const formData = new FormData()
+  formData.append('avatar', file)
+  const response = await fetch(`${getApiBaseUrl()}/api/users/me/avatar`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    body: formData,
+  })
+  if (!response.ok) throw new Error(`No se pudo guardar la foto (${response.status}).`)
+  const json = (await response.json()) as { data?: UserProfile }
+  return json.data?.avatar || ''
+}
 
-  if (authToken) {
-    try {
-      const formData = new FormData()
-      formData.append('avatar', file)
-
-      const response = await fetch(`${baseUrl}/api/users/me/avatar`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-          Accept: 'application/json',
-        },
-        body: formData,
-      })
-
-      if (response.ok) {
-        const json = (await response.json()) as { data: UserProfile; message?: string }
-        const profile = json.data
-        return {
-          avatarUrl: profile.avatar || '',
-          user: profile,
-        }
-      } else {
-        const errorJson = (await response.json().catch(() => ({}))) as Record<string, unknown>
-        const errObj = (errorJson.error || errorJson) as Record<string, unknown>
-        const fields = (errObj.fields as Record<string, string>) || {}
-        if (fields.avatar) {
-          throw new AuthError(fields.avatar, 'VALIDATION_ERROR', 'avatar')
-        }
-      }
-    } catch (err) {
-      if (err instanceof AuthError) throw err
-      console.warn('[Avatar Upload] No se pudo conectar al endpoint de Cloudinary, usando vista previa local:', err)
-    }
-  }
-
-  // Fallback seguro offline (Data URL para previsualización inmediata)
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = reader.result as string
-      resolve({ avatarUrl: dataUrl })
-    }
-    reader.onerror = () => reject(new AuthError('No se pudo procesar la imagen.', 'VALIDATION_ERROR', 'avatar'))
-    reader.readAsDataURL(file)
+function requestPasswordLogin(baseUrl: string, email: string, password: string) {
+  return fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ email, password }),
   })
 }
 
@@ -315,16 +283,18 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
     const res = backendData as Record<string, unknown>
     const user = (res.data || res.user || res) as UserProfile
     let finalAvatar = user.avatar || 'avatar-01'
+    let avatarSaveFailed = false
 
-    if (formData.customAvatarFile) {
+    const avatarFile = formData.customAvatarFile
+    if (avatarFile) {
       try {
-        const uploadRes = await uploadAvatarService(formData.customAvatarFile)
-        if (uploadRes.avatarUrl) {
-          finalAvatar = uploadRes.avatarUrl
-        }
+        finalAvatar = await persistRegisteredAvatar(user.uid, async () => {
+          const response = await requestPasswordLogin(baseUrl, backendPayload.email, backendPayload.password)
+          return response.ok ? parsePasswordLoginResponse(await response.json()) : null
+        }, (token) => uploadAvatarService(avatarFile, token))
       } catch (e) {
-        console.warn('Subida de avatar a Cloudinary pospuesta:', e)
-        if (formData.customAvatarPreview) finalAvatar = formData.customAvatarPreview
+        avatarSaveFailed = true
+        console.warn('No se pudo guardar la foto de perfil:', e)
       }
     }
 
@@ -347,6 +317,7 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
         avatar: finalAvatar,
       },
       message: typeof res.message === 'string' ? res.message : '¡Tu cuenta está lista!',
+      avatarSaveFailed,
     }
   }
 
@@ -368,14 +339,7 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
   const avatarMatch = PRESET_AVATARS.find((a) => a.id === backendPayload.avatar)
   let customAvatarFinal = avatarMatch?.id || 'avatar-01'
 
-  if (formData.customAvatarFile) {
-    try {
-      const uploadRes = await uploadAvatarService(formData.customAvatarFile)
-      customAvatarFinal = uploadRes.avatarUrl
-    } catch {
-      customAvatarFinal = formData.customAvatarPreview || 'avatar-01'
-    }
-  } else if (formData.customAvatarPreview) {
+  if (formData.customAvatarPreview) {
     customAvatarFinal = formData.customAvatarPreview
   }
 
@@ -436,14 +400,7 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
 
   // 2. Intentar autenticación centralizada en el Backend (POST /api/auth/login)
   try {
-    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ email: cleanEmail, password }),
-    })
+    const loginResponse = await requestPasswordLogin(baseUrl, cleanEmail, password)
 
     if (loginResponse.ok) {
       const body: unknown = await loginResponse.json().catch(() => null)

@@ -43,6 +43,7 @@ export interface FormErrors {
 
 export interface RegisterResponse {
   user: UserProfile
+  avatarSaveFailed?: boolean
   message?: string
   token?: string
 }

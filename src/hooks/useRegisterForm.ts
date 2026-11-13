@@ -27,6 +27,7 @@ export interface UseRegisterFormReturn {
   isLoading: boolean
   isGoogleConnecting: boolean
   successUser: UserProfile | null
+  avatarSaveFailed: boolean
   usernameStatus: UsernameStatus
   detectedUniversity: string | null
   step: 1 | 2
@@ -72,6 +73,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleConnecting, setIsGoogleConnecting] = useState(false)
   const [successUser, setSuccessUser] = useState<UserProfile | null>(null)
+  const [avatarSaveFailed, setAvatarSaveFailed] = useState(false)
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [detectedUniversity, setDetectedUniversity] = useState<string | null>(null)
   const [step, setStep] = useState<1 | 2>(1)
@@ -248,6 +250,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
 
     try {
       const response = await register(formData)
+      setAvatarSaveFailed(Boolean(response.avatarSaveFailed))
       setSuccessUser(response.user)
       setIsLoading(false)
     } catch (err: unknown) {
@@ -360,6 +363,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     isLoading,
     isGoogleConnecting,
     successUser,
+    avatarSaveFailed,
     usernameStatus,
     detectedUniversity,
     step,
