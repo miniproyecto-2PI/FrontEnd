@@ -76,10 +76,14 @@ export function Header() {
                   className="flex items-center gap-2 p-1 pl-2 pr-3 rounded-full bg-[#f0f5f9] border border-[#dbe7f0] hover:border-[#1f4e79] transition-colors"
                 >
                   <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs"
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs overflow-hidden"
                     style={{ backgroundColor: avatar?.bgColor, color: avatar?.textColor }}
                   >
-                    {avatar?.icon}
+                    {user.avatarUrl?.startsWith('http') || user.avatarUrl?.startsWith('data:') ? (
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      avatar?.icon
+                    )}
                   </div>
                   <span className="text-xs font-bold text-[#102c40]">
                     {(user.firstName || user.nombres || 'Estudiante').split(' ')[0]}

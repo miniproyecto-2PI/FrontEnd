@@ -39,6 +39,8 @@ export interface UseRegisterFormReturn {
     confirmPassword: RefObject<HTMLInputElement | null>
   }
   handleChange: (field: keyof RegisterFormData, value: string) => void
+  handleCustomAvatarSelect: (file: File, previewUrl: string) => void
+  handleClearCustomAvatar: () => void
   handleUsernameBlur: () => Promise<void>
   handleNextStep: () => Promise<void>
   handlePrevStep: () => void
@@ -144,16 +146,46 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const handleChange = (field: keyof RegisterFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
 
-    if (errors[field]) {
+    const errorKey = field as keyof FormErrors
+    if (errors[errorKey]) {
       setErrors((prev) => {
         const next = { ...prev }
-        delete next[field]
+        delete next[errorKey]
         return next
       })
     }
     if (generalAlert?.action !== 'retry') {
       setGeneralAlert(null)
     }
+  }
+
+  const handleCustomAvatarSelect = (file: File, previewUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      avatar: 'custom',
+      customAvatarFile: file,
+      customAvatarPreview: previewUrl,
+    }))
+
+    if (errors.avatar) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.avatar
+        return next
+      })
+    }
+    if (generalAlert?.action !== 'retry') {
+      setGeneralAlert(null)
+    }
+  }
+
+  const handleClearCustomAvatar = () => {
+    setFormData((prev) => ({
+      ...prev,
+      avatar: PRESET_AVATARS[0].id,
+      customAvatarFile: null,
+      customAvatarPreview: null,
+    }))
   }
 
   const dismissAlert = () => setGeneralAlert(null)
@@ -340,6 +372,8 @@ export function useRegisterForm(): UseRegisterFormReturn {
       confirmPassword: confirmPasswordRef,
     },
     handleChange,
+    handleCustomAvatarSelect,
+    handleClearCustomAvatar,
     handleUsernameBlur,
     handleNextStep,
     handlePrevStep,
