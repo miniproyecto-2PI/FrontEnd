@@ -91,7 +91,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="text-xs font-semibold text-slate-500 hover:text-red-700 transition-colors"
+                  className="text-xs font-semibold text-slate-500 hover:text-[#1f4e79] transition-colors"
                   title="Cerrar sesión"
                 >
                   Cerrar sesión
