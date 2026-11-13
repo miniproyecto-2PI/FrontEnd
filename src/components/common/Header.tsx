@@ -103,8 +103,8 @@ export function Header() {
                 <Link className="nav-login" to="/ingresar">
                   Ingresar
                 </Link>
-                <Link className="button button-small" to="/registro">
-                  Crear cuenta
+                <Link className={location.pathname === '/' ? 'nav-login' : 'button button-small'} to="/registro">
+                  Registrarse
                 </Link>
               </>
             )}

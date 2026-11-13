@@ -49,7 +49,7 @@ export function RegisterHeader({ isLoading, step, onGoogleClick }: RegisterHeade
       </div>
 
       <h1 className="text-2xl sm:text-3xl font-bold text-[#102c40] tracking-tight">
-        {step === 1 ? 'Crea tu cuenta' : 'Define tus credenciales'}
+        {step === 1 ? 'Registrarse' : 'Define tus credenciales'}
       </h1>
       <p className="mt-1.5 text-xs sm:text-sm text-[#526679]">
         {step === 1

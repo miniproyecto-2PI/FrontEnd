@@ -19,7 +19,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/como-funciona': 'Cómo funciona',
   '/ingresar': 'Iniciar sesión',
   '/login': 'Iniciar sesión',
-  '/registro': 'Crear cuenta',
+  '/registro': 'Registrarse',
   '/elegir-usuario': 'Elegir nombre de usuario',
   '/registro/usuario': 'Elegir nombre de usuario',
   '/panel': 'Panel de estudio',
@@ -75,7 +75,7 @@ function App() {
           element={
             <PageShell
               title="Cómo funciona"
-              description="Crea tu cuenta, reúne a tu grupo en una Sala y empieza a avanzar juntos."
+              description="Después del registro, reúne a tu grupo en una sala de estudio."
             />
           }
         />
