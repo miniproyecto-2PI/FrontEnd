@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { PRESET_AVATARS } from '../ui/AvatarSelector'
+import { Button } from '../ui/Button'
 
 const navLinks = [
   ['/beneficios', 'Beneficios'],
@@ -12,17 +13,23 @@ const navLinks = [
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const logoutDialog = useRef<HTMLDialogElement>(null)
+  const logoutDialogTitle = useId()
+  const logoutDialogDescription = useId()
   const location = useLocation()
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
 
   const handleLogout = () => {
+    logoutDialog.current?.close()
+    setOpen(false)
     logout()
     navigate('/ingresar', { replace: true })
   }
 
   useEffect(() => {
     setOpen(false)
+    logoutDialog.current?.close()
   }, [location.pathname])
 
   const avatar = user ? PRESET_AVATARS.find((a) => a.id === user.avatarUrl) || PRESET_AVATARS[0] : null
@@ -90,9 +97,9 @@ export function Header() {
                 </Link>
                 <button
                   type="button"
-                  onClick={handleLogout}
-                  className="text-xs font-semibold text-slate-500 hover:text-red-700 transition-colors"
-                  title="Cerrar sesión"
+                  onClick={() => logoutDialog.current?.showModal()}
+                  aria-haspopup="dialog"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-800 transition-colors hover:border-red-300 hover:bg-red-100"
                 >
                   Cerrar sesión
                 </button>
@@ -112,6 +119,27 @@ export function Header() {
           </div>
         </nav>
       </div>
+      {isAuthenticated && user && (
+        <dialog
+          ref={logoutDialog}
+          aria-labelledby={logoutDialogTitle}
+          aria-describedby={logoutDialogDescription}
+          className="m-auto max-h-[calc(100%_-_2rem)] w-[calc(100%_-_2rem)] max-w-sm overflow-y-auto rounded-2xl border border-[#dbe7f0] bg-white p-6 text-[#102c40] shadow-lg backdrop:bg-[#102c40]/50"
+        >
+          <h2 id={logoutDialogTitle} className="text-lg font-bold">¿Cerrar sesión?</h2>
+          <p id={logoutDialogDescription} className="mt-2 text-sm text-[#526679]">
+            Vas a volver a la pantalla de inicio de sesión.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <Button variant="outline" onClick={() => logoutDialog.current?.close()}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleLogout}>
+              Cerrar sesión
+            </Button>
+          </div>
+        </dialog>
+      )}
     </header>
   )
 }
