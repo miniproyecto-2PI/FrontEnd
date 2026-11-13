@@ -194,7 +194,7 @@ export function LoginForm({ form, onForgotPassword, onNavigateRegister }: LoginF
               }}
               className="font-bold text-[#1f4e79] hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1f4e79] rounded px-1"
             >
-              Regístrate
+              Registrarse
             </Link>
           </div>
         </form>

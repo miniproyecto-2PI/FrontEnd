@@ -21,7 +21,7 @@ export function HomePage() {
           <p>Un lugar tranquilo para reunirte, compartir ideas y avanzar con tus compañeros.</p>
           <div className="hero-actions">
             <Link className="button" to="/registro">
-              Crear cuenta <span aria-hidden="true">→</span>
+              Registrarse <span aria-hidden="true">→</span>
             </Link>
             <Link className="text-link" to="/ingresar">
               Ya tengo una cuenta
@@ -91,9 +91,6 @@ export function HomePage() {
               </span>
               <h3>{item.title}</h3>
               <p>{item.text}</p>
-              <Link to="/registro" className="card-link">
-                Descubrir más <span aria-hidden="true">→</span>
-              </Link>
             </article>
           ))}
         </div>
@@ -107,8 +104,8 @@ export function HomePage() {
         <ol className="steps-grid">
           <li>
             <span className="step-number">01</span>
-            <h3>Crea tu cuenta</h3>
-            <p>Regístrate con tu correo y prepara tu espacio de estudio.</p>
+            <h3>Registrarse</h3>
+            <p>Usa tu correo para preparar tu espacio de estudio.</p>
           </li>
           <li>
             <span className="step-number">02</span>
@@ -130,8 +127,8 @@ export function HomePage() {
             con más foco?
           </h2>
           <p>Reúne a tu grupo y conviertan las ideas en resultados.</p>
-          <Link className="button button-light" to="/registro">
-            Crear cuenta gratis <span aria-hidden="true">→</span>
+          <Link className="font-semibold text-white underline underline-offset-4" to="/registro">
+            Registrarse <span aria-hidden="true">→</span>
           </Link>
         </div>
         <div className="cta-mark" aria-hidden="true">

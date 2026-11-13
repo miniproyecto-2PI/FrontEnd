@@ -4,9 +4,14 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { PRESET_AVATARS } from '../components/ui/AvatarSelector'
 
-export function DashboardPage() {
+interface DashboardPageProps {
+  activeRooms?: readonly { id: string; name: string }[]
+}
+
+export function DashboardPage({ activeRooms = [] }: DashboardPageProps) {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout, isLoading } = useAuth()
+  const hasActiveRooms = activeRooms.length > 0
 
   if (isLoading) {
     return (
@@ -41,7 +46,7 @@ export function DashboardPage() {
               Iniciar sesión
             </Link>
             <Link to="/registro" className="button button-outline">
-              Crear cuenta
+              Registrarse
             </Link>
           </div>
         </section>
@@ -94,7 +99,7 @@ export function DashboardPage() {
           </div>
         </header>
 
-        {/* WORKSPACE & STUDY ROOMS (EMPTY STATE WITH CALL TO ACTION) */}
+        {/* WORKSPACE & STUDY ROOMS */}
         <section aria-labelledby="rooms-heading" className="bg-white border border-[#dfe9f1] rounded-2xl p-6 sm:p-8 shadow-xs">
           <div className="flex items-center justify-between pb-4 border-b border-[#edf2f7] mb-6">
             <div>
@@ -103,31 +108,44 @@ export function DashboardPage() {
                 Tus espacios de trabajo
               </h2>
             </div>
-            <Link to="/salas/nueva" className="button button-small">
-              + Crear Sala
-            </Link>
+            {hasActiveRooms && (
+              <Link to="/salas/nueva" className="button button-small">
+                Crear sala
+              </Link>
+            )}
           </div>
 
-          {/* Estado Vacío del Panel */}
-          <div className="p-8 text-center border-2 border-dashed border-[#e2e8f0] rounded-xl bg-[#fafcff]">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[#e7f1fb] text-[#1f4e79] flex items-center justify-center">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+          {hasActiveRooms ? (
+            <ul className="divide-y divide-[#edf2f7]">
+              {activeRooms.map((room) => (
+                <li key={room.id}>
+                  <Link to={`/salas/${encodeURIComponent(room.id)}`} className="block py-3 text-link hover:underline">
+                    {room.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-8 text-center border-2 border-dashed border-[#e2e8f0] rounded-xl bg-[#fafcff]">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[#e7f1fb] text-[#1f4e79] flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-[#102c40]">Aún no tienes salas activas</h3>
+              <p className="text-xs sm:text-sm text-[#617487] max-w-md mx-auto mt-1 mb-5">
+                Crea tu primera sala de estudio para compartir apuntes, dudas y videollamadas con tus compañeros de clase.
+              </p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <Link to="/salas/nueva" className="button">
+                  Crear sala
+                </Link>
+                <Link to="/salas/unirse" className="button button-outline">
+                  Unirme con un código
+                </Link>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-[#102c40]">Aún no tienes salas activas</h3>
-            <p className="text-xs sm:text-sm text-[#617487] max-w-md mx-auto mt-1 mb-5">
-              Crea tu primera sala de estudio para compartir apuntes, dudas y videollamadas con tus compañeros de clase.
-            </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <Link to="/salas/nueva" className="button">
-                Crear una Sala
-              </Link>
-              <Link to="/salas/unirse" className="button button-outline">
-                Unirme con un código
-              </Link>
-            </div>
-          </div>
+          )}
         </section>
       </div>
     </main>

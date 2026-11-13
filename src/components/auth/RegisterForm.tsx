@@ -286,7 +286,7 @@ export function RegisterForm({ form }: RegisterFormProps) {
                     </svg>
                   }
                 >
-                  Crear cuenta
+                  Registrarse
                 </Button>
 
                 <Button
