@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light'
+  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
   loadingText?: string
@@ -36,6 +36,7 @@ export function Button({
     outline: 'bg-white text-[#1f4e79] border border-[#cbd5e1] hover:bg-[#f8fafc] hover:border-[#94a3b8] active:bg-[#f1f5f9]',
     ghost: 'bg-transparent text-[#526679] hover:bg-[#f1f5f9] hover:text-[#102c40]',
     light: 'bg-white text-[#1f4e79] border border-white hover:bg-[#edf5fb] shadow-sm',
+    danger: 'border border-red-700 bg-red-700 text-white hover:border-red-800 hover:bg-red-800 active:bg-red-900',
   }[variant]
 
   const widthClass = fullWidth ? 'w-full' : ''
