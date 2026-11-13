@@ -24,6 +24,8 @@ export interface RegisterFormData {
   username: string
   email: string
   avatar: string
+  customAvatarFile?: File | null
+  customAvatarPreview?: string | null
   password: string
   confirmPassword: string
 }

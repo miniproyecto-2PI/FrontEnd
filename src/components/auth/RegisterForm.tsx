@@ -134,10 +134,17 @@ export function RegisterForm({ form }: RegisterFormProps) {
                 }
               />
 
-              {/* SELECTOR DE AVATAR INSTITUCIONAL */}
+              {/* SELECTOR DE AVATAR INSTITUCIONAL Y FOTO PERSONALIZADA */}
               <AvatarSelector
                 selectedId={formData.avatar}
                 onSelect={(id) => handleChange('avatar', id)}
+                customPreview={formData.customAvatarPreview}
+                onCustomFileSelect={(file, previewUrl) => {
+                  form.handleCustomAvatarSelect(file, previewUrl)
+                }}
+                onClearCustomFile={() => {
+                  form.handleClearCustomAvatar()
+                }}
                 error={errors.avatar}
               />
 
@@ -162,12 +169,20 @@ export function RegisterForm({ form }: RegisterFormProps) {
               {/* RESUMEN IDENTIDAD PREVIA */}
               <div className="flex items-center justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-2xs"
-                    style={{ backgroundColor: selectedAvatar.bgColor, color: selectedAvatar.textColor }}
-                  >
-                    {selectedAvatar.icon}
-                  </div>
+                  {formData.customAvatarPreview ? (
+                    <img
+                      src={formData.customAvatarPreview}
+                      alt="Foto seleccionada"
+                      className="w-10 h-10 rounded-full object-cover shrink-0 shadow-2xs border border-slate-200"
+                    />
+                  ) : (
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-2xs"
+                      style={{ backgroundColor: selectedAvatar.bgColor, color: selectedAvatar.textColor }}
+                    >
+                      {selectedAvatar.icon}
+                    </div>
+                  )}
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-[#102c40]">
                       {formData.nombres} {formData.apellidos}

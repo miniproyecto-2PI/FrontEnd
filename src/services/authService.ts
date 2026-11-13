@@ -107,7 +107,7 @@ export class AuthError extends Error {
     | 'TOO_MANY_ATTEMPTS'
     | 'UNAUTHENTICATED'
     | 'UNKNOWN'
-  field?: 'username' | 'email' | 'password' | 'nombres' | 'apellidos' | 'general'
+  field?: 'username' | 'email' | 'password' | 'nombres' | 'apellidos' | 'avatar' | 'general'
 
   constructor(message: string, code: AuthError['code'], field?: AuthError['field']) {
     super(message)
@@ -159,18 +159,90 @@ export async function generateUsernameSuggestions(name: string, email: string): 
 }
 
 /**
+ * Sube una imagen de perfil a Cloudinary mediante el endpoint del backend:
+ * POST /api/users/me/avatar (multipart/form-data con campo 'avatar')
+ * Cumple con las especificaciones del backend (JPG, PNG o WebP, máx. 2 MB).
+ */
+export async function uploadAvatarService(
+  file: File,
+  token?: string
+): Promise<{ avatarUrl: string; user?: UserProfile }> {
+  const maxBytes = 2 * 1024 * 1024 // 2 MB
+  if (file.size > maxBytes) {
+    throw new AuthError('La imagen debe pesar máximo 2 MB.', 'VALIDATION_ERROR', 'avatar')
+  }
+
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    throw new AuthError('Formato no permitido. Usa una imagen JPG, PNG o WebP.', 'VALIDATION_ERROR', 'avatar')
+  }
+
+  const baseUrl = getApiBaseUrl()
+  const authToken = token || localStorage.getItem(STORAGE_TOKEN_KEY)
+
+  if (authToken) {
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      const response = await fetch(`${baseUrl}/api/users/me/avatar`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          Accept: 'application/json',
+        },
+        body: formData,
+      })
+
+      if (response.ok) {
+        const json = (await response.json()) as { data: UserProfile; message?: string }
+        const profile = json.data
+        return {
+          avatarUrl: profile.avatar || '',
+          user: profile,
+        }
+      } else {
+        const errorJson = (await response.json().catch(() => ({}))) as Record<string, unknown>
+        const errObj = (errorJson.error || errorJson) as Record<string, unknown>
+        const fields = (errObj.fields as Record<string, string>) || {}
+        if (fields.avatar) {
+          throw new AuthError(fields.avatar, 'VALIDATION_ERROR', 'avatar')
+        }
+      }
+    } catch (err) {
+      if (err instanceof AuthError) throw err
+      console.warn('[Avatar Upload] No se pudo conectar al endpoint de Cloudinary, usando vista previa local:', err)
+    }
+  }
+
+  // Fallback seguro offline (Data URL para previsualización inmediata)
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      resolve({ avatarUrl: dataUrl })
+    }
+    reader.onerror = () => reject(new AuthError('No se pudo procesar la imagen.', 'VALIDATION_ERROR', 'avatar'))
+    reader.readAsDataURL(file)
+  })
+}
+
+/**
  * Registro manual de usuario (US-01) alineado con POST /api/auth/register
  */
 export async function registerUser(formData: RegisterFormData): Promise<RegisterResponse> {
   const baseUrl = getApiBaseUrl()
   const registerEndpoint = `${baseUrl}/api/auth/register`
 
-  // Contrato exacto del backend (registerSchema)
+  // Contrato exacto del backend (registerSchema requiere un avatar de AVATAR_IDS en registro)
+  const isCustom = formData.avatar === 'custom' || formData.avatar.startsWith('http') || formData.avatar.startsWith('data:')
+  const catalogAvatar = isCustom ? 'avatar-01' : formData.avatar
+
   const backendPayload = {
     firstName: formData.nombres.trim(),
     lastName: formData.apellidos.trim(),
     username: formData.username.trim(),
-    avatar: formData.avatar,
+    avatar: catalogAvatar,
     email: formData.email.trim().toLowerCase(),
     password: formData.password,
   }
@@ -224,13 +296,28 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
   if (backendSuccess && backendData) {
     const res = backendData as Record<string, unknown>
     const user = (res.data || res.user || res) as UserProfile
+    let finalAvatar = user.avatar || 'avatar-01'
+
+    if (formData.customAvatarFile) {
+      try {
+        const uploadRes = await uploadAvatarService(formData.customAvatarFile)
+        if (uploadRes.avatarUrl) {
+          finalAvatar = uploadRes.avatarUrl
+        }
+      } catch (e) {
+        console.warn('Subida de avatar a Cloudinary pospuesta:', e)
+        if (formData.customAvatarPreview) finalAvatar = formData.customAvatarPreview
+      }
+    }
+
     return {
       user: {
         ...user,
         id: user.uid,
         nombres: user.firstName,
         apellidos: user.lastName,
-        avatarUrl: user.avatar || 'avatar-01',
+        avatarUrl: finalAvatar,
+        avatar: finalAvatar,
       },
       message: typeof res.message === 'string' ? res.message : '¡Tu cuenta está lista!',
     }
@@ -258,6 +345,18 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
   })
 
   const avatarMatch = PRESET_AVATARS.find((a) => a.id === backendPayload.avatar)
+  let customAvatarFinal = avatarMatch?.id || 'avatar-01'
+
+  if (formData.customAvatarFile) {
+    try {
+      const uploadRes = await uploadAvatarService(formData.customAvatarFile)
+      customAvatarFinal = uploadRes.avatarUrl
+    } catch {
+      customAvatarFinal = formData.customAvatarPreview || 'avatar-01'
+    }
+  } else if (formData.customAvatarPreview) {
+    customAvatarFinal = formData.customAvatarPreview
+  }
 
   const created: UserProfile = {
     uid: `usr_${Date.now()}`,
@@ -268,8 +367,8 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
     apellidos: backendPayload.lastName,
     username: backendPayload.username,
     email: backendPayload.email,
-    avatar: avatarMatch?.id || 'avatar-01',
-    avatarUrl: avatarMatch?.id || 'avatar-01',
+    avatar: customAvatarFinal,
+    avatarUrl: customAvatarFinal,
     provider: 'password',
     profileComplete: true,
     createdAt: new Date().toISOString(),
