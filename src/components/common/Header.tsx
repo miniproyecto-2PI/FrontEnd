@@ -99,7 +99,7 @@ export function Header() {
                   type="button"
                   onClick={() => logoutDialog.current?.showModal()}
                   aria-haspopup="dialog"
-                  className="inline-flex min-h-11 items-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-800 transition-colors hover:border-red-300 hover:bg-red-100"
+                  className="inline-flex min-h-11 items-center rounded-lg border border-[#dbe7f0] bg-[#f0f5f9] px-3 text-xs font-semibold text-[#1f4e79] transition-colors hover:border-[#1f4e79] hover:bg-[#e7f1fb]"
                 >
                   Cerrar sesión
                 </button>
