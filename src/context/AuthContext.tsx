@@ -9,6 +9,7 @@ import {
 } from '../services/authService'
 import { auth, isFirebaseConfigured } from '../config/firebase'
 import { signOut } from 'firebase/auth'
+import { SESSION_EXPIRED_EVENT, clearSessionTokens } from '../services/session'
 
 interface AuthContextType {
   user: UserProfile | null
@@ -27,7 +28,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const AUTH_USER_KEY = 'estudiemos_active_session'
-const AUTH_TOKEN_KEY = 'estudiemos_auth_token'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null)
@@ -96,9 +96,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Ignorar
       }
     }
-    localStorage.removeItem(AUTH_TOKEN_KEY)
+    clearSessionTokens()
     persistUser(null)
   }
+
+  // La API respondió 401 y no se pudo renovar el token: la sesión venció.
+  // ProtectedRoute lleva al login conservando la ruta pedida.
+  useEffect(() => {
+    const handleExpired = () => {
+      clearSessionTokens()
+      persistUser(null)
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleExpired)
+  }, [])
 
   const setUserDirectly = (newUser: UserProfile | null) => {
     persistUser(newUser)

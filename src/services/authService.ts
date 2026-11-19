@@ -9,7 +9,9 @@ import type {
   UserProfile,
 } from '../types/auth'
 import { PRESET_AVATARS } from '../constants/avatars'
-import { parsePasswordLoginResponse } from './passwordLoginResponse'
+import { extractRefreshToken, parsePasswordLoginResponse } from './passwordLoginResponse'
+import { getApiBaseUrl } from './apiClient'
+import { saveSessionTokens } from './session'
 import { persistRegisteredAvatar } from './registeredAvatar'
 
 // Registros preexistentes para pruebas de unicidad y simulación offline
@@ -100,17 +102,6 @@ function saveStoredUser(user: StoredUser) {
     localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(users))
   } catch {
     // Ignore storage quota
-  }
-}
-
-function getApiBaseUrl(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  if (!envUrl) return 'http://localhost:3000'
-  try {
-    const parsed = new URL(envUrl)
-    return `${parsed.protocol}//${parsed.host}`
-  } catch {
-    return 'http://localhost:3000'
   }
 }
 
@@ -409,7 +400,7 @@ export async function loginUserService(credentials: LoginCredentials): Promise<L
         throw new AuthError('No pudimos obtener tu perfil del servidor. Intenta de nuevo.', 'UNKNOWN')
       }
 
-      localStorage.setItem(STORAGE_TOKEN_KEY, result.token)
+      saveSessionTokens({ idToken: result.token, refreshToken: extractRefreshToken(body) })
       resetFailedAttempts()
 
       return result
