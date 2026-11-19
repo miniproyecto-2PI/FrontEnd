@@ -29,3 +29,9 @@ export function parsePasswordLoginResponse(body: unknown): LoginResponse | null 
     message: typeof response?.message === 'string' ? response.message : '¡Bienvenido de nuevo!',
   }
 }
+
+/** Refresh token de la sesión (POST /api/auth/login) para renovar el ID token sin volver a ingresar. */
+export function extractRefreshToken(body: unknown): string | null {
+  const token = (body as { data?: { session?: { refreshToken?: unknown } } } | null)?.data?.session?.refreshToken
+  return typeof token === 'string' && token.trim() ? token : null
+}

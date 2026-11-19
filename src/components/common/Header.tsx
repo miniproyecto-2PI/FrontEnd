@@ -1,14 +1,20 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { PRESET_AVATARS } from '../ui/AvatarSelector'
 import { Button } from '../ui/Button'
+import { UserAvatar } from '../ui/UserAvatar'
 
-const navLinks = [
+const publicLinks = [
   ['/beneficios', 'Beneficios'],
   ['/como-funciona', 'Cómo funciona'],
   ['/salas', 'Salas'],
   ['/base-tecnica', 'Base técnica'],
+] as const
+
+// Con sesión iniciada la navegación se centra en el trabajo del estudiante (prototipo Sprint 2)
+const privateLinks = [
+  ['/panel', 'Panel'],
+  ['/perfil', 'Perfil'],
 ] as const
 
 export function Header() {
@@ -32,7 +38,7 @@ export function Header() {
     logoutDialog.current?.close()
   }, [location.pathname])
 
-  const avatar = user ? PRESET_AVATARS.find((a) => a.id === user.avatarUrl) || PRESET_AVATARS[0] : null
+  const navLinks = isAuthenticated && user?.profileComplete ? privateLinks : publicLinks
 
   return (
     <header className="site-header">
@@ -78,21 +84,21 @@ export function Header() {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-3">
                 <Link
-                  to="/panel"
-                  className="flex items-center gap-2 p-1 pl-2 pr-3 rounded-full bg-[#f0f5f9] border border-[#dbe7f0] hover:border-[#1f4e79] transition-colors"
+                  to={user.profileComplete ? '/perfil' : '/elegir-usuario'}
+                  aria-label={`Mi perfil: ${user.firstName || user.nombres || 'Estudiante'}${user.username ? `, @${user.username}` : ''}`}
+                  className="flex min-h-11 items-center gap-2 p-1 pl-1 pr-3 rounded-full bg-[#f0f5f9] border border-[#dbe7f0] hover:border-[#1f4e79] transition-colors"
                 >
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs overflow-hidden"
-                    style={{ backgroundColor: avatar?.bgColor, color: avatar?.textColor }}
-                  >
-                    {user.avatarUrl?.startsWith('http') || user.avatarUrl?.startsWith('data:') ? (
-                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      avatar?.icon
-                    )}
-                  </div>
-                  <span className="text-xs font-bold text-[#102c40]">
-                    {(user.firstName || user.nombres || 'Estudiante').split(' ')[0]}
+                  <UserAvatar
+                    avatar={user.avatarUrl ?? user.avatar}
+                    firstName={user.firstName || user.nombres}
+                    lastName={user.lastName || user.apellidos}
+                    className="w-8 h-8 text-xs"
+                  />
+                  <span className="flex flex-col leading-tight text-left">
+                    <span className="text-xs font-bold text-[#102c40]">
+                      {(user.firstName || user.nombres || 'Estudiante').split(' ')[0]}
+                    </span>
+                    {user.username && <span className="text-[11px] text-[#424753]">@{user.username}</span>}
                   </span>
                 </Link>
                 <button
