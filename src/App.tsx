@@ -3,7 +3,7 @@ import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Header } from './components/common/Header'
 import { Footer } from './components/common/Footer'
 import { PageShell } from './components/common/PageShell'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { HomePage, benefits } from './pages/HomePage'
 import { BaseTechnicalPage } from './pages/BaseTechnicalPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -14,6 +14,7 @@ import { NotFoundPage } from './pages/NotFoundPage'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { LiveAnnouncerProvider } from './components/ui/LiveAnnouncer'
 import { ProfilePage } from './pages/ProfilePage'
+import { RoomPage } from './pages/RoomPage'
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Inicio',
@@ -35,10 +36,30 @@ const ROUTE_TITLES: Record<string, string> = {
   '/base-tecnica': 'Base técnica',
 }
 
+/** /salas: con sesión completa lleva al panel (donde están las salas); sin sesión, invita a ingresar. */
+function SalasLanding() {
+  const { isAuthenticated, profileComplete } = useAuth()
+  if (isAuthenticated && profileComplete) return <Navigate to="/panel" replace />
+  return (
+    <PageShell title="Tus Salas" description="Inicia sesión para consultar tus salas de estudio o crea una nueva.">
+      <div className="button-row">
+        <Link className="button" to="/ingresar">
+          Iniciar sesión
+        </Link>
+        <Link className="button button-outline" to="/salas/unirse">
+          Unirme con un código
+        </Link>
+      </div>
+    </PageShell>
+  )
+}
+
 function App() {
   const location = useLocation()
 
   useEffect(() => {
+    // El interior de una sala pone su propio título con el nombre de la sala (RoomPage)
+    if (/^\/salas\/(?!nueva$|unirse$)[^/]+$/.test(location.pathname)) return
     const pageTitle =
       ROUTE_TITLES[location.pathname] ??
       (location.pathname.startsWith('/salas/') ? 'Sala' : 'Página no encontrada')
@@ -82,24 +103,7 @@ function App() {
               />
             }
           />
-          <Route
-            path="/salas"
-            element={
-              <PageShell
-                title="Tus Salas"
-                description="Inicia sesión para consultar tus salas de estudio o crea una nueva."
-              >
-                <div className="button-row">
-                  <Link className="button" to="/ingresar">
-                    Iniciar sesión
-                  </Link>
-                  <Link className="button button-outline" to="/salas/unirse">
-                    Unirme con un código
-                  </Link>
-                </div>
-              </PageShell>
-            }
-          />
+          <Route path="/salas" element={<SalasLanding />} />
           {/* US-03: Ruta de inicio de sesión con correo y Google (/ingresar y /login) */}
           <Route path="/ingresar" element={<LoginPage />} />
           <Route path="/login" element={<Navigate to="/ingresar" replace />} />
@@ -108,7 +112,7 @@ function App() {
           {/* US-02: Flujo de selección obligatoria de nombre de usuario tras Google Auth */}
           <Route path="/elegir-usuario" element={<ChooseUsernamePage />} />
           <Route path="/registro/usuario" element={<Navigate to="/elegir-usuario" replace />} />
-          {/* Panel y rutas privadas protegidas por ProtectedRoute (S1-C04, US-02) */}
+          {/* Panel y rutas privadas protegidas por ProtectedRoute (S1-C04, US-02). US-06: salas propias */}
           <Route
             path="/panel"
             element={
@@ -128,21 +132,30 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* US-06: crear sala (abre el formulario en el panel) e interior mínimo de la sala */}
           <Route
             path="/salas/nueva"
             element={
               <ProtectedRoute>
-                <PageShell title="Crear una Sala" description="Pantalla prevista en el mapa del sitio." />
+                <DashboardPage openCreate />
               </ProtectedRoute>
             }
           />
           <Route
             path="/salas/unirse"
-            element={<PageShell title="Unirse a una Sala" description="Pantalla prevista en el mapa del sitio." />}
+            element={
+              <ProtectedRoute>
+                <DashboardPage focusJoin />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/salas/:id"
-            element={<PageShell title="Sala" description="Pantalla prevista en el mapa del sitio." />}
+            element={
+              <ProtectedRoute>
+                <RoomPage />
+              </ProtectedRoute>
+            }
           />
           <Route
             path="/ayuda"
