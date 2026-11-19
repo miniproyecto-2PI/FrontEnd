@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import type { FormEvent, RefObject } from 'react'
+import type { FormEvent, ReactNode, RefObject } from 'react'
 import type { UserProfile } from '../../types/auth'
 import { Alert } from '../ui/Alert'
 import { AvatarSelector } from '../ui/AvatarSelector'
@@ -24,6 +24,8 @@ export interface ProfileEditorProps {
   profile: UserProfile
   /** Perfil actualizado por la API: el padre refresca la sesión y el encabezado. */
   onSaved: (profile: UserProfile) => void
+  /** Contenido extra al final de la columna derecha (zona de riesgo, US-05). */
+  footer?: ReactNode
 }
 
 type SaveStatus = 'idle' | 'saving' | 'success' | 'error'
@@ -67,7 +69,7 @@ function formatDate(iso: string | undefined): string | null {
   return date.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export function ProfileEditor({ profile, onSaved }: ProfileEditorProps) {
+export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) {
   const announce = useAnnouncer()
   const pickerId = useId()
   const canEditEmail = profile.provider !== 'google'
@@ -435,6 +437,7 @@ export function ProfileEditor({ profile, onSaved }: ProfileEditorProps) {
               </div>
             </form>
           </section>
+          {footer}
         </div>
       </div>
     </div>

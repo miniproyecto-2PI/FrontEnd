@@ -5,6 +5,7 @@ import { Alert } from '../components/ui/Alert'
 import { Button } from '../components/ui/Button'
 import { ProfileEditor } from '../components/profile/ProfileEditor'
 import { ProfileSkeleton } from '../components/profile/ProfileSkeleton'
+import { DangerZone } from '../components/profile/DangerZone'
 import { ApiError } from '../services/apiErrors'
 import { getMyProfile } from '../services/userService'
 
@@ -68,7 +69,12 @@ export function ProfilePage() {
         )}
 
         {state.status === 'ready' && (
-          <ProfileEditor key={state.profile.uid} profile={state.profile} onSaved={handleSaved} />
+          <ProfileEditor
+            key={state.profile.uid}
+            profile={state.profile}
+            onSaved={handleSaved}
+            footer={<DangerZone />}
+          />
         )}
       </div>
     </main>

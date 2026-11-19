@@ -1,14 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLoginForm } from '../hooks/useLoginForm'
 import { LoginForm } from '../components/auth/LoginForm'
 import { GoogleConnectingView } from '../components/auth/GoogleConnectingView'
 import { RateLimitAlert } from '../components/auth/RateLimitAlert'
 import { NotionStudyScene } from '../components/auth/NotionStudyScene'
+import { Alert } from '../components/ui/Alert'
+import { clearFlash, peekFlash } from '../services/flash'
 
 export function LoginPage() {
   const form = useLoginForm()
   const navigate = useNavigate()
+  // Aviso de otra pantalla, p. ej. "Tu cuenta fue eliminada" (US-05); se muestra una sola vez
+  const [flash] = useState(peekFlash)
+  useEffect(() => clearFlash(), [])
   const [isNavigatingToRegister, setIsNavigatingToRegister] = useState(false)
 
   const isCentering = form.isGoogleConnecting || isNavigatingToRegister || !!form.lockoutUntil
@@ -55,6 +60,11 @@ export function LoginPage() {
             </div>
           ) : (
             <div className={`w-full transition-all duration-300 ease-out ${isNavigatingToRegister ? 'opacity-80 scale-98' : 'opacity-100'}`}>
+              {flash && (
+                <Alert variant="success" role="status" className="mb-4 max-w-[460px]">
+                  {flash}
+                </Alert>
+              )}
               <LoginForm
                 form={form}
                 onNavigateRegister={handleNavigateRegister}

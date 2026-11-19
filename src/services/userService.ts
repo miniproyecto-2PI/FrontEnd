@@ -32,3 +32,8 @@ export async function uploadMyAvatar(file: File): Promise<UserProfile> {
   const { data } = await apiRequest<UserProfile>('/api/users/me/avatar', { method: 'POST', formData })
   return toUserProfile(data)
 }
+
+/** DELETE /api/users/me (US-05): borra el perfil, libera el username y elimina la cuenta de Auth. */
+export async function deleteMyAccount(): Promise<void> {
+  await apiRequest<null>('/api/users/me', { method: 'DELETE' })
+}
