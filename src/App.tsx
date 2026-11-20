@@ -15,6 +15,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { LiveAnnouncerProvider } from './components/ui/LiveAnnouncer'
 import { ProfilePage } from './pages/ProfilePage'
 import { RoomPage } from './pages/RoomPage'
+import { InformationPage } from './pages/InformationPage'
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Inicio',
@@ -33,6 +34,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/salas/unirse': 'Unirse a una Sala',
   '/ayuda': 'Ayuda',
   '/accesibilidad': 'Accesibilidad',
+  '/terminos-de-servicio': 'Términos de servicio',
   '/base-tecnica': 'Base técnica',
 }
 
@@ -163,8 +165,9 @@ function App() {
           />
           <Route
             path="/accesibilidad"
-            element={<PageShell title="Declaración de accesibilidad" description="Información de accesibilidad del producto." />}
+            element={<InformationPage topic="accesibilidad" />}
           />
+          <Route path="/terminos-de-servicio" element={<InformationPage topic="terminos" />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <Footer />
