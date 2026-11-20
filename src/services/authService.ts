@@ -272,25 +272,30 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
 
   if (backendSuccess && backendData) {
     const res = backendData as Record<string, unknown>
-    const user = (res.data || res.user || res) as UserProfile
+    // POST /api/auth/register responde como el login: { profile, session } con los tokens,
+    // así se entra al panel (y se sube la foto) sin volver a escribir las credenciales.
+    let session: LoginResponse | null = parsePasswordLoginResponse(backendData)
+    const user = session?.user ?? ((res.data || res.user || res) as UserProfile)
     let finalAvatar = user.avatar || 'avatar-01'
     let avatarSaveFailed = false
 
-    // POST /api/auth/register no devuelve tokens: se inicia sesión con las mismas
-    // credenciales para entrar al panel (y subir la foto) sin volver a escribirlas.
-    let session: LoginResponse | null = null
-    try {
-      const loginResponse = await requestPasswordLogin(baseUrl, backendPayload.email, backendPayload.password)
-      if (loginResponse.ok) {
-        const loginBody: unknown = await loginResponse.json()
-        const parsed = parsePasswordLoginResponse(loginBody)
-        if (parsed && parsed.user.uid === user.uid) {
-          session = parsed
-          saveSessionTokens({ idToken: parsed.token, refreshToken: extractRefreshToken(loginBody) })
+    if (session) {
+      saveSessionTokens({ idToken: session.token, refreshToken: extractRefreshToken(backendData) })
+    } else {
+      // Respaldo para la versión anterior de la API, que solo devolvía el perfil
+      try {
+        const loginResponse = await requestPasswordLogin(baseUrl, backendPayload.email, backendPayload.password)
+        if (loginResponse.ok) {
+          const loginBody: unknown = await loginResponse.json()
+          const parsed = parsePasswordLoginResponse(loginBody)
+          if (parsed && parsed.user.uid === user.uid) {
+            session = parsed
+            saveSessionTokens({ idToken: parsed.token, refreshToken: extractRefreshToken(loginBody) })
+          }
         }
+      } catch {
+        session = null
       }
-    } catch {
-      session = null
     }
 
     const avatarFile = formData.customAvatarFile
