@@ -117,7 +117,7 @@ export function Dialog({
         if (closeOnBackdrop && dismissible && event.target === dialogRef.current) onClose()
       }}
       onKeyDown={handleKeyDown}
-      className={`m-auto w-[calc(100%-2rem)] ${widthClass} max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-[#C2C6D5] bg-white p-0 text-[#001E2D] shadow-[0_20px_40px_-8px_rgba(11,37,64,0.14)] backdrop:bg-[#0B2540]/55 backdrop:backdrop-blur-[2px]`}
+      className={`m-auto w-[calc(100%-2rem)] ${widthClass} max-h-[calc(100dvh-2rem)] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden rounded-2xl border border-[#C2C6D5] bg-white p-0 text-[#001E2D] shadow-[0_20px_40px_-8px_rgba(11,37,64,0.14)] backdrop:bg-[#0B2540]/55 backdrop:backdrop-blur-[2px]`}
     >
       {open && (
         <div className="p-6 sm:p-7">

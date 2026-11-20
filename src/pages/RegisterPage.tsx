@@ -16,7 +16,11 @@ export function RegisterPage() {
           <GoogleConnectingView onCancel={form.handleCancelGoogle} />
         </div>
       ) : form.successUser ? (
-        <RegisterSuccessCard user={form.successUser} avatarSaveFailed={form.avatarSaveFailed} />
+        <RegisterSuccessCard
+          user={form.successUser}
+          avatarSaveFailed={form.avatarSaveFailed}
+          sessionStarted={form.sessionStarted}
+        />
       ) : (
         <div className="w-full max-w-[560px] flex flex-col gap-4 animate-fade-in">
           <RegisterForm form={form} />

@@ -67,7 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterFormData): Promise<RegisterResponse> => {
     const response = await registerUser(data)
-    persistUser(response.user)
+    // Sin sesión iniciada no se marca como autenticado: la tarjeta de éxito lleva al login
+    if (response.sessionStarted !== false) persistUser(response.user)
     return response
   }
 

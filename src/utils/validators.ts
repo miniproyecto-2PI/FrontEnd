@@ -87,11 +87,7 @@ export function validateRegisterForm(data: RegisterFormData): { isValid: boolean
     if (!firstErrorField) firstErrorField = 'username'
   }
 
-  // Avatar
-  if (!data.avatar) {
-    errors.avatar = 'Selecciona un avatar para tu perfil.'
-    if (!firstErrorField) firstErrorField = 'avatar'
-  }
+  // La foto de perfil es opcional: sin foto se muestran las iniciales
 
   // Correo
   const emailError = validateEmail(data.email)

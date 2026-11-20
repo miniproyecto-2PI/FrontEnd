@@ -41,7 +41,7 @@ export function DeleteAccountDialog({ open, onClose, username, triggerRef }: Del
   const policies: PolicyItem[] = [
     {
       title: 'Tus salas de estudio',
-      text: 'Se cerrarán de forma permanente y tus compañeros dentro de ellas recibirán un aviso.',
+      text: 'Se cerrarán para siempre y quienes estén dentro recibirán un aviso.',
       icon: (
         <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 21h16M6 21V4a1 1 0 011-1h10a1 1 0 011 1v17M14 12h.01" />
@@ -52,8 +52,7 @@ export function DeleteAccountDialog({ open, onClose, username, triggerRef }: Del
       title: 'Tus mensajes',
       text: (
         <>
-          Los que enviaste en salas de otras personas se conservan como <strong>"Usuario eliminado"</strong>, sin tu nombre
-          ni tu foto, para no romper la conversación de los demás.
+          Los que enviaste en salas ajenas quedan como <strong>"Usuario eliminado"</strong>, sin tu nombre ni tu foto.
         </>
       ),
       icon: (
@@ -78,7 +77,7 @@ export function DeleteAccountDialog({ open, onClose, username, triggerRef }: Del
     },
     {
       title: 'Tus datos personales',
-      text: 'Se borrarán tu perfil y tu cuenta de acceso. No podrás volver a iniciar sesión con ella.',
+      text: 'Se borran tu perfil y tu cuenta de acceso; no podrás volver a entrar con ella.',
       icon: (
         <svg className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
@@ -156,13 +155,13 @@ export function DeleteAccountDialog({ open, onClose, username, triggerRef }: Del
           <h3 id="delete-policy-heading" className="text-xs font-bold uppercase tracking-[0.08em] text-[#424753]">
             Qué pasará con tu información
           </h3>
-          <ul className="mt-3 flex flex-col gap-2.5">
+          <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
             {policies.map((item) => (
-              <li key={item.title} className="flex gap-3 rounded-xl border border-[#DEF0FF] bg-[#F5FAFF] p-3.5">
+              <li key={item.title} className="flex gap-2.5 rounded-xl border border-[#DEF0FF] bg-[#F5FAFF] p-3">
                 <span className="mt-0.5 shrink-0 text-[#BA1A1A]" aria-hidden="true">
                   {item.icon}
                 </span>
-                <p className="text-sm text-[#424753]">
+                <p className="text-[13px] leading-snug text-[#424753]">
                   <strong className="block text-[#001E2D]">{item.title}</strong>
                   {item.text}
                 </p>

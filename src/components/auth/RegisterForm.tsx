@@ -3,9 +3,9 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Alert } from '../ui/Alert'
 import { Badge } from '../ui/Badge'
-import { AvatarSelector } from '../ui/AvatarSelector'
+import { PhotoUploadControls } from '../ui/PhotoUploadControls'
+import { UserAvatar } from '../ui/UserAvatar'
 import { RegisterHeader } from './RegisterHeader'
-import { PRESET_AVATARS } from '../../constants/avatars'
 import type { UseRegisterFormReturn } from '../../hooks/useRegisterForm'
 
 export interface RegisterFormProps {
@@ -28,9 +28,6 @@ export function RegisterForm({ form }: RegisterFormProps) {
     handlePrevStep,
     handleSubmit,
   } = form
-
-  const selectedAvatar =
-    PRESET_AVATARS.find((a) => a.id === formData.avatar) || PRESET_AVATARS[0]
 
   const handleGoogleClick = () => {
     void form.handleGoogleSignIn()
@@ -134,19 +131,34 @@ export function RegisterForm({ form }: RegisterFormProps) {
                 }
               />
 
-              {/* SELECTOR DE AVATAR INSTITUCIONAL Y FOTO PERSONALIZADA */}
-              <AvatarSelector
-                selectedId={formData.avatar}
-                onSelect={(id) => handleChange('avatar', id)}
-                customPreview={formData.customAvatarPreview}
-                onCustomFileSelect={(file, previewUrl) => {
-                  form.handleCustomAvatarSelect(file, previewUrl)
-                }}
-                onClearCustomFile={() => {
-                  form.handleClearCustomAvatar()
-                }}
-                error={errors.avatar}
-              />
+              {/* FOTO DE PERFIL OPCIONAL: sin foto se usan las iniciales */}
+              <fieldset className="flex flex-col gap-2">
+                <legend className="text-xs font-semibold tracking-wide text-[#102c40]">
+                  Foto de perfil <span className="font-normal text-slate-500">(opcional)</span>
+                </legend>
+                <div className="flex items-center gap-4 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-3">
+                  <UserAvatar
+                    avatar={formData.customAvatarPreview}
+                    firstName={formData.nombres}
+                    lastName={formData.apellidos}
+                    className="w-16 h-16 text-xl"
+                  />
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <p className="text-xs text-slate-600">
+                      {formData.customAvatarPreview
+                        ? 'Esta foto verán tus compañeros en las salas.'
+                        : 'Si no subes una foto, tus compañeros verán tus iniciales.'}{' '}
+                      JPG, PNG o WebP, máximo 2 MB.
+                    </p>
+                    <PhotoUploadControls
+                      layout="inline"
+                      hasPhoto={Boolean(formData.customAvatarPreview)}
+                      onSelectFile={(file, previewUrl) => form.handleCustomAvatarSelect(file, previewUrl)}
+                      onRemove={() => form.handleClearCustomAvatar()}
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
               {/* BOTÓN CONTINUAR AL PASO 2 */}
               <div className="pt-2">
@@ -169,20 +181,12 @@ export function RegisterForm({ form }: RegisterFormProps) {
               {/* RESUMEN IDENTIDAD PREVIA */}
               <div className="flex items-center justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl">
                 <div className="flex items-center gap-3">
-                  {formData.customAvatarPreview ? (
-                    <img
-                      src={formData.customAvatarPreview}
-                      alt="Foto seleccionada"
-                      className="w-10 h-10 rounded-full object-cover shrink-0 shadow-2xs border border-slate-200"
-                    />
-                  ) : (
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-2xs"
-                      style={{ backgroundColor: selectedAvatar.bgColor, color: selectedAvatar.textColor }}
-                    >
-                      {selectedAvatar.icon}
-                    </div>
-                  )}
+                  <UserAvatar
+                    avatar={formData.customAvatarPreview}
+                    firstName={formData.nombres}
+                    lastName={formData.apellidos}
+                    className="w-10 h-10 text-sm"
+                  />
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-[#102c40]">
                       {formData.nombres} {formData.apellidos}

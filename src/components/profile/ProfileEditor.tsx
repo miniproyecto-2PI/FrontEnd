@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode, RefObject } from 'react'
 import type { UserProfile } from '../../types/auth'
 import { Alert } from '../ui/Alert'
-import { AvatarSelector } from '../ui/AvatarSelector'
+import { PhotoUploadControls } from '../ui/PhotoUploadControls'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -39,6 +39,10 @@ interface Banner {
 
 const cardClass = 'bg-white border border-[#C2C6D5] rounded-2xl shadow-[0_2px_8px_-2px_rgba(11,37,64,0.05)]'
 
+/** ID del catálogo que la API acepta y la interfaz muestra como iniciales. */
+const NO_PHOTO_AVATAR = 'avatar-01'
+const isPhotoUrl = (value: string | null | undefined) => Boolean(value && /^(https?:|data:|blob:)/.test(value))
+
 const SaveIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 4h11l3 3v12a1 1 0 01-1 1H6a1 1 0 01-1-1V4zm3 0v5h7V4M8 20v-6h8v6" />
@@ -47,12 +51,6 @@ const SaveIcon = (
 const UndoIcon = (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 010 11H11" />
-  </svg>
-)
-const CameraIcon = (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h1.6a2 2 0 001.7-.9l.8-1.2A2 2 0 0110.8 4h2.4a2 2 0 011.7.9l.8 1.2a2 2 0 001.7.9H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-    <circle cx="12" cy="13" r="3.5" />
   </svg>
 )
 const LockIcon = (
@@ -71,7 +69,6 @@ function formatDate(iso: string | undefined): string | null {
 
 export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) {
   const announce = useAnnouncer()
-  const pickerId = useId()
   const canEditEmail = profile.provider !== 'google'
 
   const [saved, setSaved] = useState<ProfileDraft>(() => draftFromProfile(profile))
@@ -79,7 +76,6 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
   const [errors, setErrors] = useState<ProfileErrors>({})
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [status, setStatus] = useState<SaveStatus>('idle')
   const [banner, setBanner] = useState<Banner | null>(null)
 
@@ -117,11 +113,12 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
     if (status === 'success') setStatus('idle')
   }
 
-  const handleSelectAvatar = (id: string) => {
-    if (id === 'custom') return // la foto propia llega por handleCustomFile
+  // Quitar la foto: la API solo acepta IDs del catálogo en el PATCH, y un ID del
+  // catálogo se muestra como iniciales (decisión UX: sin avatares ilustrados).
+  const handleRemovePhoto = () => {
     setAvatarFile(null)
     setAvatarPreview(null)
-    setDraft((current) => ({ ...current, avatar: id }))
+    setDraft((current) => ({ ...current, avatar: isPhotoUrl(saved.avatar) ? NO_PHOTO_AVATAR : saved.avatar }))
     if (status === 'success') setStatus('idle')
   }
 
@@ -138,7 +135,6 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
     setAvatarPreview(null)
     setBanner(null)
     setStatus('idle')
-    setIsPickerOpen(false)
     announce('Se descartaron los cambios. Tus datos guardados siguen igual.')
   }
 
@@ -195,8 +191,7 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
       }
 
       setStatus('success')
-      setIsPickerOpen(false)
-      requestFocus('success')
+        requestFocus('success')
     } catch (error) {
       setStatus('error')
       const apiError = error instanceof ApiError ? error : null
@@ -274,38 +269,20 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
               </Badge>
             </div>
 
-            <Button
-              variant="outline"
-              fullWidth
-              className="mt-6"
-              icon={CameraIcon}
-              aria-expanded={isPickerOpen}
-              aria-controls={pickerId}
-              onClick={() => setIsPickerOpen((open) => !open)}
-            >
-              {isPickerOpen ? 'Ocultar opciones de imagen' : 'Cambiar imagen'}
-            </Button>
-            <p className="mt-2 text-center text-xs text-[#424753]">JPG, PNG o WebP. Máximo 2 MB.</p>
-
-            <div id={pickerId} hidden={!isPickerOpen} className="mt-4 lg:[&_[role=radiogroup]]:grid-cols-4">
-              {isPickerOpen && (
-                <>
-                  <AvatarSelector
-                    selectedId={avatarFile ? 'custom' : draft.avatar}
-                    onSelect={handleSelectAvatar}
-                    customPreview={avatarPreview}
-                    onCustomFileSelect={handleCustomFile}
-                    onClearCustomFile={() => {
-                      setAvatarFile(null)
-                      setAvatarPreview(null)
-                    }}
-                  />
-                  <p className="mt-2 text-xs text-[#424753]">
-                    La imagen se aplica cuando seleccionas <strong>Guardar cambios</strong>.
-                  </p>
-                </>
-              )}
+            <div className="mt-6">
+              <PhotoUploadControls
+                hasPhoto={Boolean(avatarPreview) || isPhotoUrl(draft.avatar)}
+                uploadLabel="Subir foto"
+                onSelectFile={handleCustomFile}
+                onRemove={handleRemovePhoto}
+                disabled={isSaving}
+              />
             </div>
+            <p className="mt-2 text-center text-xs text-[#424753]">
+              {avatarFile || draft.avatar !== saved.avatar
+                ? 'La foto se aplica cuando seleccionas Guardar cambios.'
+                : 'Opcional. JPG, PNG o WebP, máximo 2 MB. Sin foto se muestran tus iniciales.'}
+            </p>
           </section>
 
           <section aria-labelledby="account-heading" className={`${cardClass} p-6`}>
