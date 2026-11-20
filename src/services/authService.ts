@@ -276,13 +276,27 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
     let finalAvatar = user.avatar || 'avatar-01'
     let avatarSaveFailed = false
 
+    // POST /api/auth/register no devuelve tokens: se inicia sesión con las mismas
+    // credenciales para entrar al panel (y subir la foto) sin volver a escribirlas.
+    let session: LoginResponse | null = null
+    try {
+      const loginResponse = await requestPasswordLogin(baseUrl, backendPayload.email, backendPayload.password)
+      if (loginResponse.ok) {
+        const loginBody: unknown = await loginResponse.json()
+        const parsed = parsePasswordLoginResponse(loginBody)
+        if (parsed && parsed.user.uid === user.uid) {
+          session = parsed
+          saveSessionTokens({ idToken: parsed.token, refreshToken: extractRefreshToken(loginBody) })
+        }
+      }
+    } catch {
+      session = null
+    }
+
     const avatarFile = formData.customAvatarFile
     if (avatarFile) {
       try {
-        finalAvatar = await persistRegisteredAvatar(user.uid, async () => {
-          const response = await requestPasswordLogin(baseUrl, backendPayload.email, backendPayload.password)
-          return response.ok ? parsePasswordLoginResponse(await response.json()) : null
-        }, (token) => uploadAvatarService(avatarFile, token))
+        finalAvatar = await persistRegisteredAvatar(user.uid, async () => session, (token) => uploadAvatarService(avatarFile, token))
       } catch (e) {
         avatarSaveFailed = true
         console.warn('No se pudo guardar la foto de perfil:', e)
@@ -309,6 +323,7 @@ export async function registerUser(formData: RegisterFormData): Promise<Register
       },
       message: typeof res.message === 'string' ? res.message : '¡Tu cuenta está lista!',
       avatarSaveFailed,
+      sessionStarted: session !== null,
     }
   }
 

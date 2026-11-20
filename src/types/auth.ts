@@ -46,6 +46,8 @@ export interface RegisterResponse {
   avatarSaveFailed?: boolean
   message?: string
   token?: string
+  /** false si la cuenta se creó pero no se pudo iniciar sesión automáticamente. */
+  sessionStarted?: boolean
 }
 
 export interface GoogleAuthResult {

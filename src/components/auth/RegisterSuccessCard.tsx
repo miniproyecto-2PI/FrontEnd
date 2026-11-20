@@ -2,30 +2,32 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
 import { Alert } from '../ui/Alert'
-import { PRESET_AVATARS } from '../../constants/avatars'
+import { UserAvatar } from '../ui/UserAvatar'
 import type { UserProfile } from '../../types/auth'
 
 export interface RegisterSuccessCardProps {
   user: UserProfile
   avatarSaveFailed?: boolean
+  /** false: la cuenta existe pero hay que iniciar sesión manualmente. */
+  sessionStarted?: boolean
 }
 
-export function RegisterSuccessCard({ user, avatarSaveFailed }: RegisterSuccessCardProps) {
+export function RegisterSuccessCard({ user, avatarSaveFailed, sessionStarted = true }: RegisterSuccessCardProps) {
   const navigate = useNavigate()
   const avatarValue = user.avatarUrl || user.avatar
-  const avatar = PRESET_AVATARS.find((a) => a.id === avatarValue) || PRESET_AVATARS[0]
+  const target = sessionStarted ? '/panel' : '/ingresar'
   const [countdown, setCountdown] = useState(5)
   const firstName = user.firstName || user.nombres
   const lastName = user.lastName || user.apellidos
 
   useEffect(() => {
     if (countdown === 0) {
-      navigate('/panel', { replace: true })
+      navigate(target, { replace: true })
       return
     }
     const timer = setTimeout(() => setCountdown((remaining) => remaining - 1), 1000)
     return () => clearTimeout(timer)
-  }, [countdown, navigate])
+  }, [countdown, navigate, target])
 
   return (
     <section
@@ -47,26 +49,13 @@ export function RegisterSuccessCard({ user, avatarSaveFailed }: RegisterSuccessC
 
       {avatarSaveFailed && (
         <Alert variant="warning" className="mt-4 text-left">
-          No pudimos guardar tu foto. Tu cuenta está lista con el avatar predeterminado.
+          No pudimos guardar tu foto. Tu cuenta está lista y mostrará tus iniciales; puedes subirla luego desde tu perfil.
         </Alert>
       )}
 
       {/* Student Identity Card */}
       <div className="mt-6 p-4 sm:p-5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-left flex items-center gap-4">
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-xs border border-white/60 overflow-hidden"
-          style={{ backgroundColor: avatar.bgColor, color: avatar.textColor }}
-        >
-          {avatarValue && (avatarValue.startsWith('http') || avatarValue.startsWith('data:')) ? (
-            <img
-              src={avatarValue}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            avatar.icon
-          )}
-        </div>
+        <UserAvatar avatar={avatarValue} firstName={firstName} lastName={lastName} className="w-12 h-12 text-base shadow-xs" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-[#102c40] truncate">
@@ -83,17 +72,20 @@ export function RegisterSuccessCard({ user, avatarSaveFailed }: RegisterSuccessC
           variant="primary"
           size="lg"
           fullWidth
-          onClick={() => navigate('/panel', { replace: true })}
+          onClick={() => navigate(target, { replace: true })}
           icon={
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           }
         >
-          Continuar a mi panel
+          {sessionStarted ? 'Continuar a mi panel' : 'Iniciar sesión'}
         </Button>
+        {!sessionStarted && (
+          <p className="text-sm text-[#526679]">Tu cuenta quedó creada, pero no pudimos abrir tu sesión. Ingresa con tu correo y contraseña.</p>
+        )}
         <p className="text-xs text-[#718292] flex items-center justify-center gap-1.5 font-medium">
-          <span aria-hidden="true">⏱</span> Irás al panel en{' '}
+          <span aria-hidden="true">⏱</span> {sessionStarted ? 'Irás al panel en' : 'Irás a iniciar sesión en'}{' '}
           <span className="font-bold text-[#1f4e79] tabular-nums">{countdown}</span>...
         </p>
       </div>
