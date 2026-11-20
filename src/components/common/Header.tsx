@@ -2,7 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Button } from '../ui/Button'
-import { UserAvatar } from '../ui/UserAvatar'
+import { UserMenu } from './UserMenu'
+import { setFlash } from '../../services/flash'
 
 const publicLinks = [
   ['/beneficios', 'Beneficios'],
@@ -30,6 +31,16 @@ export function Header() {
     logoutDialog.current?.close()
     setOpen(false)
     logout()
+    navigate('/ingresar', { replace: true })
+  }
+
+  // Cambiar de cuenta es solo del frontend: cierra esta sesión y abre el login vacío
+  // (con Google, la ventana pide elegir cuenta: prompt=select_account).
+  const handleSwitchAccount = () => {
+    setOpen(false)
+    const label = user?.username ? `@${user.username}` : 'tu cuenta'
+    logout()
+    setFlash(`Cerraste la sesión de ${label}. Ingresa con la otra cuenta.`)
     navigate('/ingresar', { replace: true })
   }
 
@@ -70,46 +81,16 @@ export function Header() {
                 {label}
               </NavLink>
             ))}
-            <NavLink to="/ayuda" className="inline-flex items-center gap-1.5">
-              <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <span>Ayuda</span>
-            </NavLink>
+            <NavLink to="/ayuda">Ayuda</NavLink>
           </div>
 
           <div className="nav-actions">
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  to={user.profileComplete ? '/perfil' : '/elegir-usuario'}
-                  aria-label={`Mi perfil: ${user.firstName || user.nombres || 'Estudiante'}${user.username ? `, @${user.username}` : ''}`}
-                  className="flex min-h-11 items-center gap-2 p-1 pl-1 pr-3 rounded-full bg-[#f0f5f9] border border-[#dbe7f0] hover:border-[#1f4e79] transition-colors"
-                >
-                  <UserAvatar
-                    avatar={user.avatarUrl ?? user.avatar}
-                    firstName={user.firstName || user.nombres}
-                    lastName={user.lastName || user.apellidos}
-                    className="w-8 h-8 text-xs"
-                  />
-                  <span className="flex flex-col leading-tight text-left">
-                    <span className="text-xs font-bold text-[#102c40]">
-                      {(user.firstName || user.nombres || 'Estudiante').split(' ')[0]}
-                    </span>
-                    {user.username && <span className="text-[11px] text-[#424753]">@{user.username}</span>}
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => logoutDialog.current?.showModal()}
-                  aria-haspopup="dialog"
-                  className="inline-flex min-h-11 items-center rounded-lg border border-[#dbe7f0] bg-[#f0f5f9] px-3 text-xs font-semibold text-[#1f4e79] transition-colors hover:border-[#1f4e79] hover:bg-[#e7f1fb]"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
+              <UserMenu
+                user={user}
+                onSwitchAccount={handleSwitchAccount}
+                onRequestLogout={() => logoutDialog.current?.showModal()}
+              />
             ) : (
               <>
                 <Link className="nav-login" to="/ingresar">
