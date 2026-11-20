@@ -6,7 +6,6 @@ import { UserAvatar } from '../ui/UserAvatar'
 
 export interface UserMenuProps {
   user: UserProfile
-  onSwitchAccount: () => void
   /** Abre la confirmación de cierre de sesión. */
   onRequestLogout: () => void
 }
@@ -16,11 +15,11 @@ const itemClass =
   'flex w-full min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-left text-sm! font-medium! leading-5! transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f4e79]'
 
 /**
- * Menú de la cuenta en el encabezado: Mi perfil, Cambiar de cuenta y Cerrar sesión
+ * Menú de la cuenta en el encabezado: Mi perfil y Cerrar sesión
  * (en rojo, acción de riesgo). Patrón de "disclosure": botón con aria-expanded que
  * muestra una lista de enlaces y botones; Esc cierra y devuelve el foco al botón.
  */
-export function UserMenu({ user, onSwitchAccount, onRequestLogout }: UserMenuProps) {
+export function UserMenu({ user, onRequestLogout }: UserMenuProps) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -128,17 +127,6 @@ export function UserMenu({ user, onSwitchAccount, onRequestLogout }: UserMenuPro
               </svg>
               Mi perfil
             </Link>
-          </li>
-          <li>
-            <button type="button" onClick={() => choose(onSwitchAccount)} className={`${itemClass} text-[#001E2D] hover:bg-[#EAF5FF]`}>
-              <svg className="h-5 w-5 text-[#1f4e79]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 3l4 4-4 4M20 7H9M8 21l-4-4 4-4M4 17h11" />
-              </svg>
-              <span className="flex flex-col">
-                Cambiar de cuenta
-                <span className="text-xs font-normal text-[#424753]">Sales de esta y entras con otra</span>
-              </span>
-            </button>
           </li>
           <li className="mt-1 border-t border-[#DEF0FF] pt-1">
             <button

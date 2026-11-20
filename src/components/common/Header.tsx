@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Button } from '../ui/Button'
 import { UserMenu } from './UserMenu'
-import { setFlash } from '../../services/flash'
 
 const publicLinks = [
   ['/beneficios', 'Beneficios'],
@@ -31,16 +30,6 @@ export function Header() {
     logoutDialog.current?.close()
     setOpen(false)
     logout()
-    navigate('/ingresar', { replace: true })
-  }
-
-  // Cambiar de cuenta es solo del frontend: cierra esta sesión y abre el login vacío
-  // (con Google, la ventana pide elegir cuenta: prompt=select_account).
-  const handleSwitchAccount = () => {
-    setOpen(false)
-    const label = user?.username ? `@${user.username}` : 'tu cuenta'
-    logout()
-    setFlash(`Cerraste la sesión de ${label}. Ingresa con la otra cuenta.`)
     navigate('/ingresar', { replace: true })
   }
 
@@ -88,7 +77,6 @@ export function Header() {
             {isAuthenticated && user ? (
               <UserMenu
                 user={user}
-                onSwitchAccount={handleSwitchAccount}
                 onRequestLogout={() => logoutDialog.current?.showModal()}
               />
             ) : (
