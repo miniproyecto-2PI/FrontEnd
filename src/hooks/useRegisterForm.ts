@@ -28,6 +28,8 @@ export interface UseRegisterFormReturn {
   isGoogleConnecting: boolean
   successUser: UserProfile | null
   avatarSaveFailed: boolean
+  /** false si la cuenta se creó pero no se pudo iniciar sesión automáticamente. */
+  sessionStarted: boolean
   usernameStatus: UsernameStatus
   detectedUniversity: string | null
   step: 1 | 2
@@ -74,6 +76,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const [isGoogleConnecting, setIsGoogleConnecting] = useState(false)
   const [successUser, setSuccessUser] = useState<UserProfile | null>(null)
   const [avatarSaveFailed, setAvatarSaveFailed] = useState(false)
+  const [sessionStarted, setSessionStarted] = useState(true)
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [detectedUniversity, setDetectedUniversity] = useState<string | null>(null)
   const [step, setStep] = useState<1 | 2>(1)
@@ -251,6 +254,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     try {
       const response = await register(formData)
       setAvatarSaveFailed(Boolean(response.avatarSaveFailed))
+      setSessionStarted(response.sessionStarted !== false)
       setSuccessUser(response.user)
       setIsLoading(false)
     } catch (err: unknown) {
@@ -318,7 +322,6 @@ export function useRegisterForm(): UseRegisterFormReturn {
     if (!formData.apellidos.trim()) stepErrors.apellidos = 'Ingresa tus apellidos.'
     const userErr = validateUsername(formData.username)
     if (userErr) stepErrors.username = userErr
-    if (!formData.avatar) stepErrors.avatar = 'Selecciona un avatar.'
 
     if (Object.keys(stepErrors).length > 0) {
       setErrors((prev) => ({ ...prev, ...stepErrors }))
@@ -364,6 +367,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
     isGoogleConnecting,
     successUser,
     avatarSaveFailed,
+    sessionStarted,
     usernameStatus,
     detectedUniversity,
     step,
