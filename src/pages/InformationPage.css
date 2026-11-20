@@ -1,0 +1,42 @@
+.info-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 26px;
+}
+
+.info-nav a {
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--blue);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.info-nav a:hover {
+  text-decoration: underline;
+}
+
+.info-nav a[aria-current="page"] {
+  background: var(--blue);
+  color: white;
+}
+
+.info-sections section {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.info-sections h2 {
+  margin: 0 0 6px;
+  color: var(--ink);
+  font: 700 1.125rem 'Plus Jakarta Sans', sans-serif;
+}
+
+.info-sections p {
+  margin: 0;
+  color: #526679;
+  font-size: 1rem;
+  line-height: 1.65;
+}

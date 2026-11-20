@@ -16,7 +16,7 @@ export function Footer() {
 
         <nav aria-label="Enlaces institucionales y legales">
           <Link to="/accesibilidad">Accesibilidad</Link>
-          <Link to="/ayuda">Términos de servicio</Link>
+          <Link to="/terminos-de-servicio">Términos de servicio</Link>
           <Link to="/ayuda">Privacidad</Link>
           <Link to="/ayuda">Centro de ayuda</Link>
         </nav>
