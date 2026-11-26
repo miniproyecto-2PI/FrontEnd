@@ -33,7 +33,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Criterio US-02: Bloquea toda ruta privada mientras profileComplete sea false
   if (!profileComplete) {
-    return <Navigate to="/elegir-usuario" replace />
+    return <Navigate to="/elegir-usuario" state={{ from: location }} replace />
   }
 
   return <>{children}</>

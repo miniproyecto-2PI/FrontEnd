@@ -7,6 +7,8 @@ COPY . .
 # Never pass private credentials through this build argument.
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_REALTIME_URL
+ENV VITE_REALTIME_URL=$VITE_REALTIME_URL
 RUN npm run build
 
 FROM nginx:alpine

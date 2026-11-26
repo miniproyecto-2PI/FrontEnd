@@ -1,13 +1,15 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent, MouseEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Alert } from '../components/ui/Alert'
 import { Button } from '../components/ui/Button'
 import { CreateRoomDialog } from '../components/rooms/CreateRoomDialog'
 import { RoomCard } from '../components/rooms/RoomCard'
+import { ManageRoomDialog, RoomManagementButtons } from '../components/rooms/ManageRoomDialog'
+import type { ManageRoomAction } from '../components/rooms/ManageRoomDialog'
 import { ApiError } from '../services/apiErrors'
-import { listMyRooms } from '../services/roomService'
+import { getRoom, listMyRooms } from '../services/roomService'
 import type { Room } from '../services/roomService'
 import { normalizeRoomCode, sortRoomsByNewest } from '../utils/rooms'
 
@@ -49,6 +51,22 @@ function RoomsSkeleton() {
 export function DashboardPage({ openCreate = false, focusJoin = false }: DashboardPageProps) {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const navigationNotice = location.state as { roomNotice?: string; roomNoticeName?: string } | null
+  const [feedback, setFeedback] = useState<{ title: string; name?: string }>()
+  const [action, setAction] = useState<ManageRoomAction>()
+  const actionTrigger = useRef<HTMLElement | null>(null)
+  const roomsHeading = useRef<HTMLHeadingElement>(null)
+  const joinRequest = useRef<AbortController | null>(null)
+  const [joining, setJoining] = useState(false)
+
+  useEffect(() => () => joinRequest.current?.abort(), [])
+  useEffect(() => {
+    if (navigationNotice?.roomNotice) {
+      setFeedback({ title: navigationNotice.roomNotice, name: navigationNotice.roomNoticeName })
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [navigationNotice, navigate, location.pathname])
   const joinInputId = useId()
   const joinErrorId = useId()
   const joinInputRef = useRef<HTMLInputElement>(null)
@@ -64,7 +82,9 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
     const controller = new AbortController()
     setState({ status: 'loading' })
     listMyRooms(controller.signal)
-      .then((rooms) => setState({ status: 'ready', rooms: sortRoomsByNewest(rooms) }))
+      .then((rooms) => {
+        if (!controller.signal.aborted) setState({ status: 'ready', rooms: sortRoomsByNewest(rooms) })
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return
         setState({ status: 'error', message: error instanceof ApiError ? error.message : 'Ocurrió un error inesperado.' })
@@ -81,15 +101,33 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
     setIsCreateOpen(true)
   }
 
-  const handleJoin = (event: FormEvent) => {
+  const handleJoin = async (event: FormEvent) => {
     event.preventDefault()
+    if (joinRequest.current) return
     const code = normalizeRoomCode(joinCode)
     if (!code) {
-      setJoinError('Escribe el ID que te compartieron: de 6 a 12 letras y números, por ejemplo 8K4M9Q2T.')
+      setJoinError(joinCode.trim() ? 'Revisa el ID. Usa de 6 a 12 letras y números, por ejemplo 8K4M9Q2T.'
+        : 'Escribe el ID de la sala, por ejemplo 8K4M9Q2T.')
       joinInputRef.current?.focus()
       return
     }
-    navigate(`/salas/${code}`)
+    const controller = new AbortController()
+    joinRequest.current = controller
+    setJoinError(null)
+    setJoining(true)
+    try {
+      const room = await getRoom(code, controller.signal)
+      if (!controller.signal.aborted) navigate(`/salas/${encodeURIComponent(room.id)}`, { state: { room } })
+    } catch (error) {
+      if (controller.signal.aborted) return
+      setJoinError(error instanceof ApiError && error.status === 404
+        ? 'No encontramos una sala con ese ID. Revisa que esté bien escrito o pide a tu grupo que te lo comparta de nuevo.'
+        : 'No pudimos buscar la sala. Revisa tu conexión e inténtalo de nuevo.')
+      joinInputRef.current?.focus()
+    } finally {
+      joinRequest.current = null
+      if (!controller.signal.aborted) setJoining(false)
+    }
   }
 
   const firstName = (user?.firstName || user?.nombres || '').split(' ')[0]
@@ -98,7 +136,13 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
   return (
     <main id="main-content" tabIndex={-1} className="min-h-[calc(100vh-140px)] bg-[#F5FAFF] px-4 pb-16 pt-10 sm:px-6 lg:px-12 focus:outline-none">
       <div className="mx-auto max-w-[1200px]">
-        {/* ENCABEZADO Y ACCIONES PRINCIPALES */}
+        {feedback && <Alert variant={feedback.title === 'El anfitrión eliminó la sala' ? 'warning' : 'success'}
+          role={feedback.title === 'El anfitrión eliminó la sala' ? 'alert' : 'status'} title={feedback.title}
+          onDismiss={() => setFeedback(undefined)} className="mx-auto mb-6 max-w-[1000px]">
+          {feedback.name && (feedback.title === 'Sala actualizada' ? `Ahora se llama «${feedback.name}».`
+            : feedback.title === 'Sala eliminada' ? `«${feedback.name}» y todo su chat se eliminaron.`
+              : `«${feedback.name}» y su chat ya no existen. Te trajimos de vuelta a tu panel.`)}
+        </Alert>}
         <section aria-labelledby="dashboard-title" className="mx-auto flex max-w-3xl flex-col items-center text-center">
           {firstName && (
             <p className="inline-flex items-center gap-2 rounded-full bg-[#DEF0FF] px-4 py-1.5 text-sm font-medium text-[#424753]">
@@ -115,12 +159,12 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
           <p className="mt-3 text-base sm:text-lg text-[#424753]">Crea una sala o únete con el ID que te compartió tu grupo.</p>
 
           <div className="mt-8 flex w-full flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-center">
-            <Button size="lg" className="sm:min-w-52" onClick={openCreateDialog} aria-haspopup="dialog" icon={PlusIcon}>
+            <Button size="lg" className="sm:min-h-[62px] sm:min-w-52" onClick={openCreateDialog} aria-haspopup="dialog" icon={PlusIcon}>
               Nueva sala
             </Button>
 
             <form noValidate onSubmit={handleJoin} className="flex w-full flex-col gap-1.5 text-left sm:max-w-md">
-              <div className="flex gap-2 rounded-xl border border-[#C2C6D5] bg-white p-1.5 shadow-[0_2px_8px_-2px_rgba(11,37,64,0.05)] focus-within:border-[#1f4e79]">
+              <div className={`flex gap-2 rounded-xl border bg-white p-1.5 shadow-[0_2px_8px_-2px_rgba(11,37,64,0.05)] focus-within:ring-2 focus-within:ring-[#1f4e79] ${joinError ? 'border-[#BA1A1A]' : 'border-[#72777f]'}`}>
                 <label htmlFor={joinInputId} className="sr-only">
                   ID de la sala para unirte
                 </label>
@@ -128,6 +172,7 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
                   ref={joinInputRef}
                   id={joinInputId}
                   value={joinCode}
+                  readOnly={joining}
                   onChange={(e) => {
                     setJoinCode(e.target.value)
                     if (joinError) setJoinError(null)
@@ -140,12 +185,13 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
                   aria-describedby={joinError ? joinErrorId : undefined}
                   className="min-h-11 min-w-0 flex-1 rounded-lg bg-transparent px-3 font-mono text-base tracking-wider text-[#001E2D] placeholder:font-sans placeholder:tracking-normal placeholder:text-[#5b6170] focus:outline-none"
                 />
-                <Button type="submit" variant="secondary" className="shrink-0">
+                <Button type="submit" variant="secondary" className="shrink-0" isLoading={joining} loadingText="Buscando…">
                   Unirme
                 </Button>
               </div>
+              {joining && <p role="status" className="px-1 text-sm text-[#424753]">Buscando la sala…</p>}
               {joinError && (
-                <p id={joinErrorId} role="alert" className="flex items-start gap-1.5 px-1 text-xs font-medium text-red-700">
+                <p id={joinErrorId} role="alert" className="flex items-start gap-1.5 px-1 text-sm font-medium text-red-700">
                   <span aria-hidden="true">⚠</span>
                   {joinError}
                 </p>
@@ -157,7 +203,7 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
         {/* LISTA DE SALAS PROPIAS */}
         <section aria-labelledby="rooms-heading" className="mx-auto mt-14 max-w-[1000px]">
           <div className="mb-6 flex items-center gap-3 border-b border-[#C2C6D5] pb-4">
-            <h2 id="rooms-heading" className="text-2xl font-semibold text-[#001E2D] font-['Plus_Jakarta_Sans',sans-serif]">
+            <h2 ref={roomsHeading} tabIndex={-1} id="rooms-heading" className="text-2xl font-semibold text-[#001E2D] font-['Plus_Jakarta_Sans',sans-serif]">
               Tus salas
             </h2>
             {roomCount !== null && (
@@ -210,7 +256,8 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
               {state.rooms.map((room) => (
                 <li key={room.id} className="flex">
                   <div className="flex w-full [&>article]:w-full">
-                    <RoomCard room={room} />
+                    <RoomCard room={room} actions={room.ownerId === user?.uid && <RoomManagementButtons room={room}
+                      onAction={(next, trigger) => { actionTrigger.current = trigger; setAction(next) }} />} />
                   </div>
                 </li>
               ))}
@@ -219,6 +266,19 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
         </section>
       </div>
 
+      {action && <ManageRoomDialog action={action} returnFocusRef={actionTrigger} onClose={() => setAction(undefined)}
+        onSaved={(room) => {
+          setState((current) => current.status === 'ready'
+            ? { ...current, rooms: current.rooms.map((item) => item.id === room.id ? room : item) } : current)
+          setFeedback({ title: 'Sala actualizada', name: room.name })
+        }}
+        onDeleted={(room) => {
+          actionTrigger.current = null
+          setState((current) => current.status === 'ready'
+            ? { ...current, rooms: current.rooms.filter((item) => item.id !== room.id) } : current)
+          setFeedback({ title: 'Sala eliminada', name: room.name })
+          requestAnimationFrame(() => roomsHeading.current?.focus())
+        }} />}
       <CreateRoomDialog open={isCreateOpen} onClose={() => setIsCreateOpen(false)} returnFocusRef={createTriggerRef} />
     </main>
   )

@@ -5,6 +5,7 @@ export interface AlertProps {
   title?: string
   children: ReactNode
   action?: ReactNode
+  onDismiss?: () => void
   className?: string
   role?: 'alert' | 'status'
 }
@@ -14,6 +15,7 @@ export function Alert({
   title,
   children,
   action,
+  onDismiss,
   className = '',
   role = variant === 'error' ? 'alert' : 'status',
 }: AlertProps) {
@@ -71,6 +73,10 @@ export function Alert({
         <div className="text-xs sm:text-sm leading-relaxed">{children}</div>
       </div>
       {action && <div className="shrink-0 self-center">{action}</div>}
+      {onDismiss && <button type="button" aria-label="Cerrar aviso" onClick={onDismiss}
+        className={`-my-2 -mr-2 grid size-11 shrink-0 self-center place-items-center rounded-lg hover:bg-black/5 ${styles.iconColor}`}>
+        <svg aria-hidden="true" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>}
     </div>
   )
 }

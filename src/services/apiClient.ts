@@ -78,14 +78,14 @@ async function requestNewToken(): Promise<string | null> {
 }
 
 /** Una sola renovación a la vez aunque varias peticiones reciban 401 en paralelo. */
-function refreshAccessToken(): Promise<string | null> {
+export function refreshAccessToken(): Promise<string | null> {
   refreshInFlight ??= requestNewToken().finally(() => {
     refreshInFlight = null
   })
   return refreshInFlight
 }
 
-async function currentToken(): Promise<string | null> {
+export async function currentToken(): Promise<string | null> {
   if (isFirebaseConfigured && auth?.currentUser) {
     try {
       return await auth.currentUser.getIdToken()
@@ -104,7 +104,8 @@ async function send(path: string, options: ApiRequestOptions, token: string | nu
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort('timeout'), REQUEST_TIMEOUT_MS)
   const onExternalAbort = () => controller.abort(options.signal?.reason)
-  options.signal?.addEventListener('abort', onExternalAbort)
+  if (options.signal?.aborted) onExternalAbort()
+  else options.signal?.addEventListener('abort', onExternalAbort)
 
   try {
     return await fetch(`${getApiBaseUrl()}${path}`, {

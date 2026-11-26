@@ -6,16 +6,17 @@ import { UserAvatar } from '../ui/UserAvatar'
 import type { UserProfile } from '../../types/auth'
 
 export interface RegisterSuccessCardProps {
+  continueTo?: string
   user: UserProfile
   avatarSaveFailed?: boolean
   /** false: la cuenta existe pero hay que iniciar sesión manualmente. */
   sessionStarted?: boolean
 }
 
-export function RegisterSuccessCard({ user, avatarSaveFailed, sessionStarted = true }: RegisterSuccessCardProps) {
+export function RegisterSuccessCard({ user, avatarSaveFailed, sessionStarted = true, continueTo = '/panel' }: RegisterSuccessCardProps) {
   const navigate = useNavigate()
   const avatarValue = user.avatarUrl || user.avatar
-  const target = sessionStarted ? '/panel' : '/ingresar'
+  const target = sessionStarted ? continueTo : '/ingresar'
   const [countdown, setCountdown] = useState(5)
   const firstName = user.firstName || user.nombres
   const lastName = user.lastName || user.apellidos
@@ -79,13 +80,13 @@ export function RegisterSuccessCard({ user, avatarSaveFailed, sessionStarted = t
             </svg>
           }
         >
-          {sessionStarted ? 'Continuar a mi panel' : 'Iniciar sesión'}
+          {sessionStarted ? (continueTo === '/panel' ? 'Continuar a mi panel' : 'Continuar a la sala') : 'Iniciar sesión'}
         </Button>
         {!sessionStarted && (
           <p className="text-sm text-[#526679]">Tu cuenta quedó creada, pero no pudimos abrir tu sesión. Ingresa con tu correo y contraseña.</p>
         )}
         <p className="text-xs text-[#718292] flex items-center justify-center gap-1.5 font-medium">
-          <span aria-hidden="true">⏱</span> {sessionStarted ? 'Irás al panel en' : 'Irás a iniciar sesión en'}{' '}
+          <span aria-hidden="true">⏱</span> {sessionStarted ? (continueTo === '/panel' ? 'Irás al panel en' : 'Irás a la sala en') : 'Irás a iniciar sesión en'}{' '}
           <span className="font-bold text-[#1f4e79] tabular-nums">{countdown}</span>...
         </p>
       </div>

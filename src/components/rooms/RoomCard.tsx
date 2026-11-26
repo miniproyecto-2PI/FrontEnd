@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { Room } from '../../services/roomService'
 import { formatRoomDate } from '../../utils/rooms'
@@ -16,7 +17,7 @@ export function HostBadge() {
 }
 
 /** Tarjeta de sala del panel (US-06): nombre, rol, ID con "Copiar ID" y "Entrar a la sala". */
-export function RoomCard({ room }: { room: Room }) {
+export function RoomCard({ room, actions }: { room: Room; actions?: ReactNode }) {
   const created = formatRoomDate(room.createdAt)
   const headingId = `room-${room.id}-name`
 
@@ -62,6 +63,7 @@ export function RoomCard({ room }: { room: Room }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" />
         </svg>
       </Link>
+      {actions && <div className="border-t border-[#DEF0FF] pt-4">{actions}</div>}
     </article>
   )
 }
