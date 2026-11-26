@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   AuthError,
@@ -12,6 +12,8 @@ import type { UserProfile } from '../types/auth'
 
 export function useChooseUsername() {
   const navigate = useNavigate()
+  const { state } = useLocation()
+  const target = (state as { from?: { pathname?: string } } | null)?.from?.pathname || '/panel'
   const { user, completeUsername, cancelGoogleAuth, isAuthenticated, profileComplete } = useAuth()
 
   const [username, setUsername] = useState('')
@@ -29,9 +31,9 @@ export function useChooseUsername() {
       return
     }
     if (profileComplete && !successUser) {
-      navigate('/panel', { replace: true })
+      navigate(target, { replace: true })
     }
-  }, [isAuthenticated, profileComplete, user, successUser, navigate])
+  }, [isAuthenticated, profileComplete, user, successUser, navigate, target])
 
   // Cargar sugerencias inteligentes al montar
   useEffect(() => {

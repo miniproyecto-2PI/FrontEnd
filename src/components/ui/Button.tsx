@@ -1,12 +1,13 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light' | 'danger'
+  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light' | 'danger' | 'danger-outline' | 'danger'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
   loadingText?: string
   fullWidth?: boolean
   icon?: ReactNode
+  ref?: Ref<HTMLButtonElement>
 }
 
 export function Button({
@@ -31,6 +32,8 @@ export function Button({
   }[size]
 
   const variantClasses = {
+    danger: 'bg-[#BA1A1A] text-white hover:bg-[#930F0F] border border-[#BA1A1A]',
+    'danger-outline': 'bg-white text-[#BA1A1A] hover:bg-[#ffdad6] border border-[#BA1A1A]',
     primary: 'bg-[#1f4e79] text-white hover:bg-[#163a5a] active:bg-[#112d47] border border-[#1f4e79] shadow-sm',
     secondary: 'bg-[#f0f5f9] text-[#1f4e79] hover:bg-[#e2eef7] border border-[#dbe7f0]',
     outline: 'bg-white text-[#1f4e79] border border-[#cbd5e1] hover:bg-[#f8fafc] hover:border-[#94a3b8] active:bg-[#f1f5f9]',

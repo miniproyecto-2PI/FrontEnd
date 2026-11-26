@@ -82,16 +82,19 @@ export function useLoginForm(): UseLoginFormReturn {
     password: useRef<HTMLInputElement | null>(null),
   }
 
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from
+  const target = from?.pathname || '/panel'
+
   // Si ya está autenticado al cargar la página, redirigir adecuadamente
   useEffect(() => {
     if (isAuthenticated) {
       if (profileComplete) {
-        navigate('/panel', { replace: true })
+        navigate(target, { replace: true })
       } else {
-        navigate('/elegir-usuario', { replace: true })
+        navigate('/elegir-usuario', { replace: true, state: { from } })
       }
     }
-  }, [isAuthenticated, profileComplete, navigate])
+  }, [isAuthenticated, profileComplete, navigate, target, from])
 
   // Desbloqueo rápido mediante parámetro de URL (?reset=true o ?unlock=true) para pruebas
   useEffect(() => {
@@ -109,11 +112,6 @@ export function useLoginForm(): UseLoginFormReturn {
     if (generalAlert) {
       setGeneralAlert(null)
     }
-  }
-
-  const getRedirectPath = (): string => {
-    const state = location.state as { from?: { pathname?: string } } | undefined
-    return state?.from?.pathname || '/panel'
   }
 
   const handleSubmit = async (e?: FormEvent) => {
@@ -158,11 +156,10 @@ export function useLoginForm(): UseLoginFormReturn {
       setIsLoading(false)
 
       // Criterio US-02/US-03: Redirección al panel o a la ruta solicitada
-      const target = getRedirectPath()
       if (user.profileComplete) {
         navigate(target, { replace: true })
       } else {
-        navigate('/elegir-usuario', { replace: true })
+        navigate('/elegir-usuario', { replace: true, state: { from } })
       }
     } catch (err) {
       setIsLoading(false)
@@ -220,13 +217,12 @@ export function useLoginForm(): UseLoginFormReturn {
       const result = await loginWithGoogle()
       setIsGoogleConnecting(false)
 
-      const target = getRedirectPath()
       // Criterio US-03: Login con Google recurrente lleva directo al dashboard
       if (result.user.profileComplete && !result.isNewUser) {
         navigate(target, { replace: true })
       } else {
         // Criterio US-02: Si no tiene username, redirige a /elegir-usuario
-        navigate('/elegir-usuario', { replace: true })
+        navigate('/elegir-usuario', { replace: true, state: { from } })
       }
     } catch (err) {
       setIsGoogleConnecting(false)
