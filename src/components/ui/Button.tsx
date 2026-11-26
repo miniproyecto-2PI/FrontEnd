@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light' | 'danger' | 'danger-outline' | 'danger'
+  variant?: 'primary' | 'outline' | 'ghost' | 'secondary' | 'light' | 'danger' | 'danger-outline'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
   loadingText?: string
@@ -32,7 +32,6 @@ export function Button({
   }[size]
 
   const variantClasses = {
-    danger: 'bg-[#BA1A1A] text-white hover:bg-[#930F0F] border border-[#BA1A1A]',
     'danger-outline': 'bg-white text-[#BA1A1A] hover:bg-[#ffdad6] border border-[#BA1A1A]',
     primary: 'bg-[#1f4e79] text-white hover:bg-[#163a5a] active:bg-[#112d47] border border-[#1f4e79] shadow-sm',
     secondary: 'bg-[#f0f5f9] text-[#1f4e79] hover:bg-[#e2eef7] border border-[#dbe7f0]',
