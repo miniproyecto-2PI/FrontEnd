@@ -125,11 +125,23 @@
   border-color: var(--blue);
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+.site-header .nav-register-placeholder {
+  visibility: hidden;
+}
+
 .password-input::-ms-reveal {
   display: none;
 }
 
 @media (max-width: 960px) {
+  .site-header .nav-register-placeholder {
+    display: none;
+  }
+
   .site-header .nav-wrap {
     width: 100%;
     padding: 8px 20px;
