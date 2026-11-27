@@ -245,7 +245,7 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
                 Crear sala
               </Button>
               <p className="mt-6 max-w-md rounded-xl bg-[#EAF5FF] px-4 py-3 text-left text-sm text-[#424753]">
-                <strong className="text-[#001E2D]">Consejo:</strong> al crear una sala obtienes un ID corto y fácil de dictar
+                <strong className="text-[#001E2D]">Consejo:</strong> Al crear una sala obtienes un ID corto y fácil de dictar
                 para compartirlo con tus compañeros.
               </p>
             </div>
