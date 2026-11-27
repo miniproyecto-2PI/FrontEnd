@@ -24,7 +24,7 @@ export function useChooseUsername() {
   const [showExitModal, setShowExitModal] = useState(false)
   const [successUser, setSuccessUser] = useState<UserProfile | null>(null)
 
-  // Redirigir si no está autenticado o si el perfil ya está completo
+  //  Redirigir si no está autenticado o si el perfil ya está completo
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate('/ingresar', { replace: true })
