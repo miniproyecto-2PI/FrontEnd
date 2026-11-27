@@ -6,6 +6,7 @@ import { Badge } from '../ui/Badge'
 import { PhotoUploadControls } from '../ui/PhotoUploadControls'
 import { UserAvatar } from '../ui/UserAvatar'
 import { RegisterHeader } from './RegisterHeader'
+import { PRESET_AVATARS } from '../../constants/avatars'
 import type { UseRegisterFormReturn } from '../../hooks/useRegisterForm'
 
 export interface RegisterFormProps {
@@ -28,6 +29,7 @@ export function RegisterForm({ form }: RegisterFormProps) {
     handlePrevStep,
     handleSubmit,
   } = form
+  const selectedAvatar = formData.customAvatarPreview || formData.avatar
 
   const handleGoogleClick = () => {
     void form.handleGoogleSignIn()
@@ -131,14 +133,41 @@ export function RegisterForm({ form }: RegisterFormProps) {
                 }
               />
 
-              {/* FOTO DE PERFIL OPCIONAL: sin foto se usan las iniciales */}
-              <fieldset className="flex flex-col gap-2">
+              <fieldset disabled={isLoading} className="grid gap-2">
+                <legend className="mb-2 text-xs font-semibold tracking-wide text-[#102c40]">Avatar de perfil</legend>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  {PRESET_AVATARS.slice(0, 6).map(({ id, label }) => (
+                    <label key={id} className="relative cursor-pointer">
+                      <input
+                        className="peer sr-only"
+                        type="radio"
+                        name="preset-avatar"
+                        value={id}
+                        checked={selectedAvatar === id}
+                        onChange={() => form.handlePresetAvatarSelect(id)}
+                      />
+                      <span className="flex flex-col items-center gap-1.5 rounded-xl border border-[#dbe7f0] bg-white p-2 text-center
+                        hover:bg-[#eef6fc] peer-checked:border-[#1f4e79] peer-checked:bg-[#e7f1fb]
+                        peer-focus-visible:ring-2 peer-focus-visible:ring-[#1f4e79] peer-focus-visible:ring-offset-2">
+                        <UserAvatar avatar={id} className="size-10 sm:size-11" />
+                        <span className="text-[11px] font-semibold text-[#102c40]">{label.split(' (')[0]}</span>
+                        <span className="sr-only">{label.slice(label.indexOf(' ('))}</span>
+                      </span>
+                      {selectedAvatar === id && (
+                        <span aria-hidden="true" className="absolute right-1 top-1 grid size-4 place-items-center rounded-full bg-[#1f4e79] text-[10px] text-white">✓</span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset disabled={isLoading} className="flex flex-col gap-2">
                 <legend className="text-xs font-semibold tracking-wide text-[#102c40]">
                   Foto de perfil <span className="font-normal text-slate-500">(opcional)</span>
                 </legend>
                 <div className="flex items-center gap-4 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-3">
                   <UserAvatar
-                    avatar={formData.customAvatarPreview}
+                    avatar={selectedAvatar}
                     firstName={formData.nombres}
                     lastName={formData.apellidos}
                     className="w-16 h-16 text-xl"
@@ -146,12 +175,13 @@ export function RegisterForm({ form }: RegisterFormProps) {
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <p className="text-xs text-slate-600">
                       {formData.customAvatarPreview
-                        ? 'Esta foto verán tus compañeros en las salas.'
-                        : 'Si no subes una foto, tus compañeros verán tus iniciales.'}{' '}
+                        ? 'Tus compañeros verán esta foto en las salas.'
+                        : 'Puedes subir una foto para usarla en lugar del avatar elegido.'}{' '}
                       JPG, PNG o WebP, máximo 2 MB.
                     </p>
                     <PhotoUploadControls
                       layout="inline"
+                      disabled={isLoading}
                       hasPhoto={Boolean(formData.customAvatarPreview)}
                       onSelectFile={(file, previewUrl) => form.handleCustomAvatarSelect(file, previewUrl)}
                       onRemove={() => form.handleClearCustomAvatar()}
@@ -182,7 +212,7 @@ export function RegisterForm({ form }: RegisterFormProps) {
               <div className="flex items-center justify-between p-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl">
                 <div className="flex items-center gap-3">
                   <UserAvatar
-                    avatar={formData.customAvatarPreview}
+                    avatar={selectedAvatar}
                     firstName={formData.nombres}
                     lastName={formData.apellidos}
                     className="w-10 h-10 text-sm"

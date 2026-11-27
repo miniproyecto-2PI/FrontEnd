@@ -42,6 +42,7 @@ export interface UseRegisterFormReturn {
     confirmPassword: RefObject<HTMLInputElement | null>
   }
   handleChange: (field: keyof RegisterFormData, value: string) => void
+  handlePresetAvatarSelect: (id: string) => void
   handleCustomAvatarSelect: (file: File, previewUrl: string) => void
   handleClearCustomAvatar: () => void
   handleUsernameBlur: () => Promise<void>
@@ -167,7 +168,6 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const handleCustomAvatarSelect = (file: File, previewUrl: string) => {
     setFormData((prev) => ({
       ...prev,
-      avatar: 'custom',
       customAvatarFile: file,
       customAvatarPreview: previewUrl,
     }))
@@ -187,10 +187,14 @@ export function useRegisterForm(): UseRegisterFormReturn {
   const handleClearCustomAvatar = () => {
     setFormData((prev) => ({
       ...prev,
-      avatar: PRESET_AVATARS[0].id,
       customAvatarFile: null,
       customAvatarPreview: null,
     }))
+  }
+
+  const handlePresetAvatarSelect = (id: string) => {
+    handleChange('avatar', id)
+    handleClearCustomAvatar()
   }
 
   const dismissAlert = () => setGeneralAlert(null)
@@ -380,6 +384,7 @@ export function useRegisterForm(): UseRegisterFormReturn {
       confirmPassword: confirmPasswordRef,
     },
     handleChange,
+    handlePresetAvatarSelect,
     handleCustomAvatarSelect,
     handleClearCustomAvatar,
     handleUsernameBlur,
