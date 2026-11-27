@@ -50,7 +50,7 @@ export function RegisterSuccessCard({ user, avatarSaveFailed, sessionStarted = t
 
       {avatarSaveFailed && (
         <Alert variant="warning" className="mt-4 text-left">
-          No pudimos guardar tu foto. Tu cuenta está lista y mostrará tus iniciales; puedes subirla luego desde tu perfil.
+          No pudimos guardar tu foto. Tu cuenta está lista con el avatar del catálogo. Puedes subir la foto luego desde tu perfil.
         </Alert>
       )}
 

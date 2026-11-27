@@ -281,7 +281,7 @@ export function ProfileEditor({ profile, onSaved, footer }: ProfileEditorProps) 
             <p className="mt-2 text-center text-xs text-[#424753]">
               {avatarFile || draft.avatar !== saved.avatar
                 ? 'La foto se aplica cuando seleccionas Guardar cambios.'
-                : 'Opcional. JPG, PNG o WebP, máximo 2 MB. Sin foto se muestran tus iniciales.'}
+                : 'Opcional. JPG, PNG o WebP, máximo 2 MB. Puedes usar una foto en lugar de tu avatar.'}
             </p>
           </section>
 

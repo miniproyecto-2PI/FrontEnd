@@ -156,6 +156,8 @@ Las rutas de React Router se pueden abrir directamente o recargar gracias a `ver
 | `/ingresar` | Inicio de sesión (pantalla base) |
 | `/registro` y `/registro/usuario` | Registro (pantallas base) |
 | `/panel`, `/perfil` | Pantallas base de usuario |
+
+En el primer paso del registro manual puedes elegir uno de seis avatares ilustrados o subir una foto de perfil. La carga acepta JPG, PNG y WebP de hasta 2 MB y permite recortar la imagen antes de guardarla.
 | `/salas`, `/salas/nueva`, `/salas/unirse`, `/salas/:id` | Pantallas base de salas |
 | `/ayuda`, `/accesibilidad` | Ayuda y declaración de accesibilidad |
 | Cualquier ruta desconocida | Página 404 |

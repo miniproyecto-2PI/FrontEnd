@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { PRESET_AVATARS } from '../../constants/avatars'
 import { initialsOf } from '../../utils/profileForm'
 
 export interface UserAvatarProps {
-  /** URL de una foto, data URL de vista previa o vacío. Los IDs del catálogo (avatar-01…) se muestran como iniciales. */
+  /** ID del catálogo, URL de una foto o vista previa. */
   avatar?: string | null
   firstName?: string | null
   lastName?: string | null
@@ -13,15 +14,24 @@ export interface UserAvatarProps {
 }
 
 /**
- * Avatar único para toda la app (encabezado, perfil, panel). Sin foto propia (o de
- * Google), o si la imagen falla, muestra las iniciales sobre el azul de la guía visual.
- * Decisión UX Sprint 2: se retiraron los avatares ilustrados; la API aún exige un ID
- * del catálogo al registrarse, que aquí equivale a "sin foto".
+ * Muestra la ilustración del catálogo o la foto de perfil.
+ * Usa las iniciales si no hay un avatar reconocido o si falla la foto.
  */
 export function UserAvatar({ avatar, firstName, lastName, className = 'w-10 h-10 text-sm', alt = '' }: UserAvatarProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const isImage = Boolean(avatar && (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('blob:')))
   const base = `rounded-full shrink-0 overflow-hidden flex items-center justify-center select-none ${className}`
+  const preset = PRESET_AVATARS.find(({ id }) => id === avatar)
+
+  if (preset) {
+    return (
+      <span className={`${base} [&>svg]:size-[72%]`}
+        style={{ backgroundColor: preset.bgColor, color: preset.textColor }}
+        role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>
+        {preset.icon}
+      </span>
+    )
+  }
 
   if (isImage && avatar && failedSrc !== avatar) {
     return (
