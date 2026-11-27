@@ -39,6 +39,7 @@ export function Header() {
   }, [location.pathname])
 
   const navLinks = isAuthenticated && user?.profileComplete ? privateLinks : publicLinks
+  const isRegistrationPage = location.pathname.replace(/\/+$/, '') === '/registro'
 
   return (
     <header className="site-header">
@@ -84,7 +85,11 @@ export function Header() {
                 <Link className="nav-login" to="/ingresar">
                   Iniciar sesión
                 </Link>
-                {location.pathname.replace(/\/+$/, '') !== '/registro' && (
+                {isRegistrationPage ? (
+                  <span className="nav-register nav-register-placeholder" aria-hidden="true">
+                    Registrarse
+                  </span>
+                ) : (
                   <Link className="nav-register" to="/registro">
                     Registrarse
                   </Link>
