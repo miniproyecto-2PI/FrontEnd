@@ -23,7 +23,7 @@ export function UserAvatar({ avatar, firstName, lastName, className = 'w-10 h-10
   const base = `rounded-full shrink-0 overflow-hidden flex items-center justify-center select-none ${className}`
   const preset = PRESET_AVATARS.find(({ id }) => id === avatar)
 
-  if (preset) {
+  if (preset?.icon) {
     return (
       <span className={`${base} [&>svg]:size-[72%]`}
         style={{ backgroundColor: preset.bgColor, color: preset.textColor }}
@@ -33,15 +33,16 @@ export function UserAvatar({ avatar, firstName, lastName, className = 'w-10 h-10
     )
   }
 
-  if (isImage && avatar && failedSrc !== avatar) {
+  const imageSrc = preset?.image ?? (isImage ? avatar : null)
+  if (imageSrc && failedSrc !== imageSrc) {
     return (
       <span className={`${base} bg-[#D6E3F2]`}>
         <img
-          src={avatar}
+          src={imageSrc}
           alt={alt}
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover"
-          onError={() => setFailedSrc(avatar)}
+          onError={() => setFailedSrc(imageSrc)}
         />
       </span>
     )
