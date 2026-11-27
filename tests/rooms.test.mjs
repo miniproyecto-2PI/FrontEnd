@@ -20,13 +20,16 @@ test('acepta los límites 3 y 60 (sin contar espacios de los extremos)', () => {
 test('normaliza el código como lo comparten', () => {
   assert.equal(normalizeRoomCode(' 8k4m-9q2t '), '8K4M9Q2T')
   assert.equal(normalizeRoomCode('https://estudiemos.vercel.app/salas/8K4M9Q2T'), '8K4M9Q2T')
-  assert.equal(normalizeRoomCode('8K4M 9Q2T7W'), '8K4M9Q2T7W')
+  assert.equal(normalizeRoomCode('8K4M 9Q2T'), '8K4M9Q2T')
 })
 
 test('rechaza códigos que no pueden ser un ID', () => {
   assert.equal(normalizeRoomCode(''), null)
   assert.equal(normalizeRoomCode('abc'), null)
   assert.equal(normalizeRoomCode('sala#1!'), null)
+  assert.equal(normalizeRoomCode('54JFJ35'), null)
+  assert.equal(normalizeRoomCode('8K4M9Q2T7W'), null)
+  assert.equal(normalizeRoomCode('8K4M9Q01'), null)
 })
 
 test('ordena las salas de la más reciente a la más antigua', () => {

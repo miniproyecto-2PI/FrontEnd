@@ -37,16 +37,21 @@ export function useRoomRealtime(roomId: string, handlers: {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [generation, setGeneration] = useState(0)
   const [attempt, setAttempt] = useState(0)
+  const [failure, setFailure] = useState('')
 
   useEffect(() => {
     let active = true
     let refreshing = false
     let refreshed = false
-    const url = import.meta.env.VITE_REALTIME_URL || (import.meta.env.DEV ? 'http://localhost:4000' : '')
-    if (!url) {
+    const url = import.meta.env.VITE_REALTIME_URL?.trim() || (import.meta.env.DEV ? 'http://localhost:4000' : '')
+    const endpoint = URL.canParse(url) ? new URL(url) : null
+    if (!endpoint || !['http:', 'https:'].includes(endpoint.protocol)
+      || (window.location.protocol === 'https:' && endpoint.protocol !== 'https:')) {
+      setFailure('La dirección del servicio en tiempo real falta o no es válida para este sitio.')
       setConnection('error')
       return
     }
+    setFailure('')
     setConnection('joining')
     const socket: Socket<RoomEvents, ClientEvents> = io(url, {
       autoConnect: false,
@@ -62,6 +67,7 @@ export function useRoomRealtime(roomId: string, handlers: {
       socket.timeout(12_000).emit('room:join', { roomId }, (timeout, ack) => {
         if (!active || !socket.connected) return
         if (timeout || !ack?.ok) {
+          setFailure(timeout ? 'El servicio en tiempo real no confirmó el ingreso a la sala.' : 'El servicio en tiempo real rechazó el ingreso a la sala.')
           setConnection('error')
           if (!timeout && ack && !ack.ok && ack.error.code === 'ROOM_NOT_FOUND') callbacks.current.onDelete(true)
           return
@@ -87,9 +93,15 @@ export function useRoomRealtime(roomId: string, handlers: {
           refreshing = false
           if (!active) return
           if (token) socket.connect()
-          else setConnection('error')
+          else {
+            setFailure('Tu sesión no pudo validarse para el chat. Vuelve a iniciar sesión.')
+            setConnection('error')
+          }
         })
       } else {
+        setFailure(error.data?.code === 'UNAUTHENTICATED'
+          ? 'Tu sesión no pudo validarse para el chat. Vuelve a iniciar sesión.'
+          : 'El servicio en tiempo real no está disponible. Inténtalo de nuevo.')
         setConnection('error')
       }
     })
@@ -111,6 +123,7 @@ export function useRoomRealtime(roomId: string, handlers: {
     socket.on('room:error', (event) => {
       if (event.roomId === roomId) {
         joined.current = false
+        setFailure('El servicio en tiempo real no pudo actualizar la sala. Inténtalo de nuevo.')
         setConnection('error')
       }
     })
@@ -136,5 +149,5 @@ export function useRoomRealtime(roomId: string, handlers: {
     return ack.data.id
   }
 
-  return { connection, participants, generation, send, retry: () => setAttempt((value) => value + 1) }
+  return { connection, failure, participants, generation, send, retry: () => setAttempt((value) => value + 1) }
 }
