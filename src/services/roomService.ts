@@ -43,7 +43,7 @@ export async function createRoom(name: string): Promise<Room> {
 
 /** GET /api/rooms/:id (404 si no existe). */
 export async function getRoom(id: string, signal?: AbortSignal): Promise<Room> {
-  const { data } = await apiRequest<Room>(`/api/rooms/${encodeURIComponent(id)}`, { signal })
+  const { data } = await apiRequest<Room>(`/api/rooms/${encodeURIComponent(id)}`, { signal, cache: 'no-store' })
   return data
 }
 

@@ -14,7 +14,7 @@ export function validateRoomName(name: string): string | null {
   return null
 }
 
-const ROOM_CODE = /^[A-Z0-9]{6,12}$/
+const ROOM_CODE = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{8}$/
 
 /**
  * Acepta el ID tal como lo comparten: con espacios o guiones, en minúsculas o como

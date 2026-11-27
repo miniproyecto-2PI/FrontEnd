@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useRoomChat } from '../../hooks/useRoomChat'
 import { useRoomRealtime } from '../../hooks/useRoomRealtime'
+import { ApiError } from '../../services/apiErrors'
+import { getRoom } from '../../services/roomService'
 import type { Room, Participant } from '../../services/roomService'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
@@ -80,6 +82,31 @@ export function StudyRoom({ initialRoom, viewer, justCreated, onMissing }: {
   }, [removed, navigate])
 
   const connected = realtime.connection === 'connected' && !removed
+  const verifyWhileOffline = realtime.connection === 'error' || realtime.connection === 'reconnecting'
+
+  useEffect(() => {
+    if (!verifyWhileOffline || removed) return
+    const controller = new AbortController()
+    let timer: number | undefined
+    async function verifyRoom() {
+      try {
+        await getRoom(room.id, controller.signal)
+      } catch (error) {
+        if (!controller.signal.aborted && !ownDeletion.current && error instanceof ApiError
+          && (error.status === 404 || error.code === 'ROOM_NOT_FOUND')) {
+          setAction(undefined)
+          setRemoved(true)
+          return
+        }
+      }
+      if (!controller.signal.aborted) timer = window.setTimeout(() => void verifyRoom(), 15_000)
+    }
+    void verifyRoom()
+    return () => {
+      controller.abort()
+      window.clearTimeout(timer)
+    }
+  }, [room.id, verifyWhileOffline, removed])
   const connectionLabel = {
     joining: 'Entrando…',
     connected: 'Conectado',
@@ -106,7 +133,7 @@ export function StudyRoom({ initialRoom, viewer, justCreated, onMissing }: {
       </Alert>}
       {realtime.connection === 'error' && <Alert title="No pudimos conectar con la sala"
         action={<Button variant="outline" onClick={realtime.retry}>Reintentar</Button>}>
-        Revisa tu conexión e inténtalo de nuevo.
+        {realtime.failure || 'El servicio en tiempo real no está disponible. Inténtalo de nuevo.'}
       </Alert>}
       <div className="study-room-mobile-bar">
         <h1 ref={mobileHeading} tabIndex={-1}>{room.name}</h1>
@@ -145,20 +172,21 @@ export function StudyRoom({ initialRoom, viewer, justCreated, onMissing }: {
           aria-selected={tab === 'chat'} tabIndex={tab === 'chat' ? 0 : -1} onClick={() => setTab('chat')}>Chat</button>
         <button ref={peopleTab} type="button" id="room-people-tab" role="tab" aria-controls="room-people-panel"
           aria-selected={tab === 'participants'} tabIndex={tab === 'participants' ? 0 : -1}
-          onClick={() => setTab('participants')}>Participantes ({realtime.participants.length})</button>
+          onClick={() => setTab('participants')}>Participantes{connected ? ` (${realtime.participants.length})` : ''}</button>
       </div>
       <div className="study-room-workspace">
         <div className="study-room-people" id="room-people-panel" data-visible={tab === 'participants'}
           role={desktop ? undefined : 'tabpanel'} aria-labelledby={desktop ? undefined : 'room-people-tab'}>
           <section className="study-room-card study-participants" aria-labelledby="room-people-heading">
-            <h2 id="room-people-heading">Participantes <span className="study-chip">{realtime.participants.length}</span></h2>
+            <h2 id="room-people-heading">Participantes {connected && <span className="study-chip">{realtime.participants.length}</span>}</h2>
             {joining && <div role="status">
               <span className="sr-only">Cargando participantes…</span>
               <div className="study-people-list" aria-hidden="true">
                 {[0, 1].map((item) => <div key={item} className="study-person-skeleton rounded-xl bg-[#dbe7f0] motion-safe:animate-pulse" />)}
               </div>
             </div>}
-            {realtime.participants.length === 1 && realtime.participants[0].uid === viewer.uid && <p>Solo tú en la sala</p>}
+            {!joining && !connected && <p className="text-sm text-[#424753]">La lista se actualizará cuando vuelva la conexión.</p>}
+            {connected && realtime.participants.length === 1 && realtime.participants[0].uid === viewer.uid && <p>Solo tú en la sala</p>}
             <ul className="study-people-list">
               {realtime.participants.map((person) => <li key={person.uid} className="study-person">
                 <UserAvatar avatar={person.avatar} firstName={person.name} className="size-10 text-sm md:size-16 md:text-xl" />

@@ -150,7 +150,7 @@ export function RoomChat({ chat, author, connected, send, visible }: {
         </div>
         <textarea id={inputId} rows={2} value={text} onChange={(event) => setText(event.target.value)}
           placeholder="Comparte una idea o pregunta con la sala…"
-          aria-invalid={tooLong} aria-describedby={tooLong ? `${inputId}-error` : undefined}
+          aria-invalid={tooLong} aria-describedby={tooLong ? `${inputId}-error` : !connected ? `${inputId}-connection` : undefined}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault()
@@ -160,6 +160,7 @@ export function RoomChat({ chat, author, connected, send, visible }: {
         {tooLong && <p id={`${inputId}-error`} role="alert" className="flex items-start gap-1.5 text-sm font-medium text-red-700">
           <span aria-hidden="true">⚠</span> Tu mensaje supera los 1000 caracteres. Acórtalo para poder enviarlo.
         </p>}
+        {!connected && <p id={`${inputId}-connection`} className="text-sm text-[#424753]">Podrás enviar mensajes cuando se conecte el chat.</p>}
         <div className="study-chat-send">
           <span className="hidden text-sm text-[#424753] md:inline">Enter para enviar · Shift + Enter para una nueva línea</span>
           <Button type="submit" disabled={!canSend} icon={sendIcon}>Enviar</Button>

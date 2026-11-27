@@ -127,7 +127,7 @@ export function Dialog({
         <div className="p-6 sm:p-7">
           <div className="flex items-start gap-4">
             {icon && <div className="shrink-0" aria-hidden="true">{icon}</div>}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
               <h2 id={titleId} className="text-xl sm:text-2xl font-bold tracking-[-0.01em] text-[#001E2D] font-['Plus_Jakarta_Sans',sans-serif]">
                 {title}
               </h2>

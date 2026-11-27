@@ -6,6 +6,7 @@ import { StudyRoom } from '../components/rooms/StudyRoom'
 import { ApiError } from '../services/apiErrors'
 import { getRoom } from '../services/roomService'
 import type { Room } from '../services/roomService'
+import { normalizeRoomCode } from '../utils/rooms'
 import './RoomPage.css'
 
 type RoomState =
@@ -26,17 +27,17 @@ export function RoomPage() {
 function RoomPageContent({ roomId }: { roomId: string }) {
   const location = useLocation()
   const { user } = useAuth()
-  const navState = location.state as { created?: boolean; room?: Room } | null
-  const justCreated = Boolean(navState?.created)
+  const justCreated = Boolean((location.state as { created?: boolean } | null)?.created)
   const main = useRef<HTMLElement>(null)
 
-  const [state, setState] = useState<RoomState>(() =>
-    navState?.room?.id === roomId ? { status: 'ready', room: navState.room } : { status: 'loading' }
-  )
+  const [state, setState] = useState<RoomState>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if (attempt === 0 && navState?.room?.id === roomId) return // recién creada: ya la tenemos
+    if (normalizeRoomCode(roomId) !== roomId) {
+      setState({ status: 'not-found' })
+      return
+    }
     const controller = new AbortController()
     setState({ status: 'loading' })
     getRoom(roomId, controller.signal)
@@ -52,8 +53,6 @@ function RoomPageContent({ roomId }: { roomId: string }) {
         setState({ status: 'error' })
       })
     return () => controller.abort()
-    // navState solo cuenta en la primera carga
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, attempt])
 
   useEffect(() => {

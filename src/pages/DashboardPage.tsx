@@ -106,7 +106,7 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
     if (joinRequest.current) return
     const code = normalizeRoomCode(joinCode)
     if (!code) {
-      setJoinError(joinCode.trim() ? 'Revisa el ID. Usa de 6 a 12 letras y números, por ejemplo 8K4M9Q2T.'
+      setJoinError(joinCode.trim() ? 'Revisa el ID. Usa un código de 8 caracteres, por ejemplo 8K4M9Q2T.'
         : 'Escribe el ID de la sala, por ejemplo 8K4M9Q2T.')
       joinInputRef.current?.focus()
       return
@@ -120,9 +120,9 @@ export function DashboardPage({ openCreate = false, focusJoin = false }: Dashboa
       if (!controller.signal.aborted) navigate(`/salas/${encodeURIComponent(room.id)}`, { state: { room } })
     } catch (error) {
       if (controller.signal.aborted) return
-      setJoinError(error instanceof ApiError && error.status === 404
+      setJoinError(error instanceof ApiError && (error.status === 404 || error.code === 'ROOM_NOT_FOUND')
         ? 'No encontramos una sala con ese ID. Revisa que esté bien escrito o pide a tu grupo que te lo comparta de nuevo.'
-        : 'No pudimos buscar la sala. Revisa tu conexión e inténtalo de nuevo.')
+        : error instanceof ApiError ? (error.fields.id ?? error.message) : 'No pudimos buscar la sala. Inténtalo de nuevo.')
       joinInputRef.current?.focus()
     } finally {
       joinRequest.current = null

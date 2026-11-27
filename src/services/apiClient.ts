@@ -39,6 +39,7 @@ export interface ApiRequestOptions {
   body?: unknown
   formData?: FormData
   signal?: AbortSignal
+  cache?: RequestCache
   /** false para endpoints públicos. Por defecto envía el token. */
   auth?: boolean
 }
@@ -110,6 +111,7 @@ async function send(path: string, options: ApiRequestOptions, token: string | nu
   try {
     return await fetch(`${getApiBaseUrl()}${path}`, {
       method: options.method ?? 'GET',
+      cache: options.cache,
       headers,
       body: options.formData ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
       signal: controller.signal,
